@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:prayer/api/notification_api.dart';
 import 'package:prayer/main.dart';
 import 'package:restart_app/restart_app.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,7 +27,7 @@ enum Methods {
   NorthAmerica
 }
 
-enum Madhab2 {Shafi, Hanafi }
+enum Madhab2 { Shafi, Hanafi }
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -120,14 +121,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     // TODO: implement initState
 
     getShared();
+    
 
     super.initState();
   }
+
   var controller123 = SidebarXController(selectedIndex: 2, extended: false);
   final GlobalKey<ScaffoldState> _key = GlobalKey();
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async  => false ,
+      onWillPop: () async => false,
       child: Scaffold(
         key: _key,
         backgroundColor: Colors.white,
@@ -150,70 +153,74 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
         drawer: SidebarX(
-            theme: const SidebarXTheme(
-                textStyle: TextStyle(color: Colors.white),
-                iconTheme: IconThemeData(
-                  color: Colors.white,
-                  size: 20,
-                ),
-                decoration:
-                    BoxDecoration(color: Color.fromARGB(255, 45, 45, 45))),
-            extendedTheme: const SidebarXTheme(
-              width: 200,
-              decoration: BoxDecoration(
-                color: Color.fromARGB(255, 45, 45, 45),
+          theme: const SidebarXTheme(
+              textStyle: TextStyle(color: Colors.white),
+              iconTheme: IconThemeData(
+                color: Colors.white,
+                size: 20,
               ),
+              decoration:
+                  BoxDecoration(color: Color.fromARGB(255, 45, 45, 45))),
+          extendedTheme: const SidebarXTheme(
+            width: 200,
+            decoration: BoxDecoration(
+              color: Color.fromARGB(255, 45, 45, 45),
             ),
-            controller: controller123,
-            items: [
-              SidebarXItem(icon: Icons.home, label: 'Home',onTap: () {
-                Navigator.push(
+          ),
+          controller: controller123,
+          items: [
+            SidebarXItem(
+                icon: Icons.home,
+                label: 'Home',
+                onTap: () {
+                  Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => MyHomePage()),
                   );
-              }),
-              SidebarXItem(
-                icon: Icons.explore,
-                label: 'Qibla',
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => CompassScreen2()),
-                  );
-                  setState(() {
-                    controller123 =
-                        SidebarXController(selectedIndex: 2, extended: false);
-                  });
-                },
-              ),
-              SidebarXItem(
-                icon: Icons.settings,
-                label: "Settings",
-                onTap: () {
-                  setState(() {
-                    controller123 =
-                        SidebarXController(selectedIndex: 0, extended: false);
-                  });
-                },
-              ),
-              /// SidebarXItem(
-              ///   icon: Icons.menu_book,
-              ///   label: "Dua",
-              ///   onTap: () {
-              ///     Navigator.pop(context);
-              ///     Navigator.push(
-              ///       context,
-              ///       MaterialPageRoute(builder: (context) => DuaText()),
-              ///     );
-              ///     setState(() {
-              ///       controller123 =
-              ///           SidebarXController(selectedIndex: 2, extended: false);
-              ///     });
-              ///   },
-              /// ),
-            ],
-          ),
+                }),
+            SidebarXItem(
+              icon: Icons.explore,
+              label: 'Qibla',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CompassScreen2()),
+                );
+                setState(() {
+                  controller123 =
+                      SidebarXController(selectedIndex: 2, extended: false);
+                });
+              },
+            ),
+            SidebarXItem(
+              icon: Icons.settings,
+              label: "Settings",
+              onTap: () {
+                setState(() {
+                  controller123 =
+                      SidebarXController(selectedIndex: 0, extended: false);
+                });
+              },
+            ),
+
+            /// SidebarXItem(
+            ///   icon: Icons.menu_book,
+            ///   label: "Dua",
+            ///   onTap: () {
+            ///     Navigator.pop(context);
+            ///     Navigator.push(
+            ///       context,
+            ///       MaterialPageRoute(builder: (context) => DuaText()),
+            ///     );
+            ///     setState(() {
+            ///       controller123 =
+            ///           SidebarXController(selectedIndex: 2, extended: false);
+            ///     });
+            ///   },
+            /// ),
+          ],
+        ),
         body: ListView(
           children: [
             Container(
@@ -260,11 +267,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     _met = value;
                                     setMethod("Egyptian");
                                   });
-    
+
                                   Navigator.pop(context);
                                 },
                               ),
-    
+
                               /// RadioListTile<SingingCharacter>(
                               ///   title: const Text('Karachi'),
                               ///   value: SingingCharacter.Karachi,
@@ -285,11 +292,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     _met = value;
                                     setMethod("Kuwait");
                                   });
-    
+
                                   Navigator.pop(context);
                                 },
                               ),
-    
+
                               /// RadioListTile<SingingCharacter>(
                               ///   title: const Text('Moon Sighting'),
                               ///   value: SingingCharacter.MoonsightingCommittee,
@@ -300,7 +307,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ///       print(_character);
                               ///     });
                               ///   },
-    
+
                               /// ),
                               RadioListTile<Methods>(
                                 title: const Text(
@@ -312,7 +319,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     _met = value;
                                     setMethod("North America");
                                   });
-    
+
                                   Navigator.pop(context);
                                 },
                               ),
@@ -325,7 +332,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     _met = value;
                                     setMethod("Qatar");
                                   });
-    
+
                                   Navigator.pop(context);
                                 },
                               ),
@@ -338,7 +345,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     _met = value;
                                     setMethod("Singapore");
                                   });
-    
+
                                   Navigator.pop(context);
                                 },
                               ),
@@ -352,7 +359,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     _met = value;
                                     setMethod("Tehran");
                                   });
-    
+
                                   Navigator.pop(context);
                                 },
                               ),
@@ -365,7 +372,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     _met = value;
                                     setMethod("Dubai");
                                   });
-    
+
                                   Navigator.pop(context);
                                 },
                               ),
@@ -408,7 +415,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 height: 90,
                 padding: EdgeInsets.fromLTRB(10, 10, 50, 10),
                 decoration: BoxDecoration(
-                    color: Colors.white, border: Border.all(color: Colors.grey)),
+                    color: Colors.white,
+                    border: Border.all(color: Colors.grey)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -416,7 +424,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       "Calculation Method",
                       style: TextStyle(color: Colors.black, fontSize: 20),
                     ),
-                    SizedBox(height: 5,),
+                    SizedBox(
+                      height: 5,
+                    ),
                     Text(
                       "Please consult your religious authority for the correct calculation method to use.",
                       style: TextStyle(color: Colors.grey, fontSize: 15),
@@ -444,7 +454,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   setState(() {
                                     _mad = value;
                                   });
-                                  setMadhab("hanafi");
+                                  setMadhab("shafi");
                                 },
                               ),
                               RadioListTile<Madhab2>(
@@ -473,7 +483,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 height: 90,
                 padding: EdgeInsets.fromLTRB(10, 10, 50, 10),
                 decoration: BoxDecoration(
-                    color: Colors.white, border: Border.all(color: Colors.grey)),
+                    color: Colors.white,
+                    border: Border.all(color: Colors.grey)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

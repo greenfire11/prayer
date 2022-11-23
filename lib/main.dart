@@ -376,9 +376,33 @@ void initTimeZone() {
   tz.initializeTimeZones();
 }
 
+late Position position2;
+void determinePosition2() async {
+  LocationPermission permission;
+  permission = await Geolocator.checkPermission();
+  if (permission == LocationPermission.denied) {
+    permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied) {
+      // Permissions are denied, next time you could try
+      // requesting permissions again (this is also where
+      // Android's shouldShowRequestPermissionRationale
+      // returned true. According to Android guidelines
+      // your App should show an explanatory UI now.
+      return Future.error('Location permissions are denied');
+    }
+  }
+  position2 = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high);
+
+  final prefs = await SharedPreferences.getInstance();
+  prefs.setStringList("location",
+      [position2.latitude.toString(), position2.longitude.toString()]);
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   tz.initializeTimeZones();
+  await NotificationApi.init();
   String ti = await FlutterNativeTimezone.getLocalTimezone();
   ErrorWidget.builder = (FlutterErrorDetails details) => Container();
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -386,9 +410,12 @@ Future<void> main() async {
   final prefs = await SharedPreferences.getInstance();
   if (prefs.containsKey('location') == false) {
     prefs.setStringList('location', <String>["46.180370", "6.095370"]);
+
+    await Permission.locationWhenInUse.request();
+  }
+  if (prefs.containsKey('method') == false) {
     prefs.setString("method", "Tehran");
     prefs.setString("madhab", "shafi");
-    await Permission.locationWhenInUse.request();
   }
   var lat = prefs.getStringList("location")![0];
   var long = prefs.getStringList("location")![1];
@@ -668,7 +695,7 @@ class _MyHomePageState extends State<MyHomePage> {
     Color(0xffeb6344),
     Color.fromARGB(255, 131, 208, 236), //sunrise
     Color(0xff4ca1dc),
-     //asr
+    //asr
     Color(0xff8a327d),
     Color(0xff6f53a5), //isha
   ];
@@ -677,7 +704,7 @@ class _MyHomePageState extends State<MyHomePage> {
     Color(0xffeaab94), //sunrise
     Color(0xffade0f2),
     Color.fromARGB(255, 137, 191, 230),
-     //asr
+    //asr
     Color(0xffc630a4),
     Color(0xffaa9cc7), //isha
   ];
@@ -870,6 +897,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 });
               },
             ),
+
             /// SidebarXItem(
             ///   icon: Icons.menu_book,
             ///   label: "Dua",
