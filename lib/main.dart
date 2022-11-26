@@ -2,6 +2,7 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:adhan_dart/adhan_dart.dart';
 import 'package:prayer/compass_screen.dart';
@@ -652,6 +653,10 @@ Future<void> main() async {
       requiresCharging: false,
     ),
   );
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown
+  ]);
 
   runApp(MyApp());
   var pendingNotificationRequests2 =
@@ -744,7 +749,7 @@ class _MyHomePageState extends State<MyHomePage> {
         [position.latitude.toString(), position.longitude.toString()]);
   }
 
-  void getPrayerTimes() async {
+  void getPrayerTimes({bool refresh =false}) async {
     String ti = await FlutterNativeTimezone.getLocalTimezone();
     final prefs = await SharedPreferences.getInstance();
     var loc = prefs.getStringList("location");
@@ -778,7 +783,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
     setState(() {
       String next = prayerTimes.nextPrayer();
-      nextPrayer = next == "fajrafter"
+      if (refresh==false) {
+        nextPrayer = next == "fajrafter"
           ? 0
           : next == "fajr"
               ? 0
@@ -791,6 +797,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           : next == "isha"
                               ? 5
                               : 0;
+      }
+      
       nextPrayerTime = next == "fajrafter"
           ? fajrTimeafter
           : next == "fajr"
@@ -819,7 +827,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     // TODO: implement initState
-    getPrayerTimes();
+    getPrayerTimes(refresh: false);
     super.initState();
   }
 
@@ -946,7 +954,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       icon: Icon(Icons.refresh_rounded),
                       onPressed: () {
                         _determinePosition();
-                        getPrayerTimes();
+                        getPrayerTimes(refresh: true);
                       },
                     ),
                   ),

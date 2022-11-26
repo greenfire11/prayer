@@ -43,19 +43,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void setMethod(String method) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString("method", method);
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => MyHomePage()),
-    );
   }
 
   void setMadhab(String mad) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString("madhab", mad);
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => MyHomePage()),
-    );
   }
 
   void getShared() async {
@@ -139,10 +131,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           elevation: 0,
           leading: Container(
             child: IconButton(
-              icon: Icon(Icons.menu),
+              icon: Icon(Icons.arrow_back),
               color: Colors.black,
               onPressed: () {
-                _key.currentState!.openDrawer();
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => MyHomePage()),
+                  );
               },
             ),
           ),
@@ -151,75 +146,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             "Settings",
             style: TextStyle(color: Colors.black),
           ),
-        ),
-        drawer: SidebarX(
-          theme: const SidebarXTheme(
-              textStyle: TextStyle(color: Colors.white),
-              iconTheme: IconThemeData(
-                color: Colors.white,
-                size: 20,
-              ),
-              decoration:
-                  BoxDecoration(color: Color.fromARGB(255, 45, 45, 45))),
-          extendedTheme: const SidebarXTheme(
-            width: 200,
-            decoration: BoxDecoration(
-              color: Color.fromARGB(255, 45, 45, 45),
-            ),
-          ),
-          controller: controller123,
-          items: [
-            SidebarXItem(
-                icon: Icons.home,
-                label: 'Home',
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => MyHomePage()),
-                  );
-                }),
-            SidebarXItem(
-              icon: Icons.explore,
-              label: 'Qibla',
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => CompassScreen2()),
-                );
-                setState(() {
-                  controller123 =
-                      SidebarXController(selectedIndex: 2, extended: false);
-                });
-              },
-            ),
-            SidebarXItem(
-              icon: Icons.settings,
-              label: "Settings",
-              onTap: () {
-                setState(() {
-                  controller123 =
-                      SidebarXController(selectedIndex: 0, extended: false);
-                });
-              },
-            ),
-
-            /// SidebarXItem(
-            ///   icon: Icons.menu_book,
-            ///   label: "Dua",
-            ///   onTap: () {
-            ///     Navigator.pop(context);
-            ///     Navigator.push(
-            ///       context,
-            ///       MaterialPageRoute(builder: (context) => DuaText()),
-            ///     );
-            ///     setState(() {
-            ///       controller123 =
-            ///           SidebarXController(selectedIndex: 2, extended: false);
-            ///     });
-            ///   },
-            /// ),
-          ],
         ),
         body: ListView(
           children: [

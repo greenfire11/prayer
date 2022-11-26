@@ -47,6 +47,7 @@ class _CompassScreen2State extends State<CompassScreen2> {
         final heading = snapshot.data?.heading ?? 0;
 
         return Scaffold(
+          appBar: AppBar(title: Text("Compass"),backgroundColor: Colors.black,centerTitle: true,),
           backgroundColor: Colors.black,
           body: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
