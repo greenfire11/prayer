@@ -54,6 +54,8 @@ List<DateTime> getDataDay(addDay, lat, long, ti, mad, method) {
   CalculationParameters params = calcMethods[method];
   params.madhab = madhab[mad];
   PrayerTimes prayerTimes = new PrayerTimes(coordinates, date, params);
+  String next =
+      prayerTimes.nextPrayer(date: DateTime.now().add(Duration(hours: 0)));
 
   DateTime one = tz.TZDateTime.from(prayerTimes.fajr!, timezone);
   DateTime two = tz.TZDateTime.from(prayerTimes.sunrise!, timezone);
@@ -72,35 +74,51 @@ List<DateTime> getDataDay(addDay, lat, long, ti, mad, method) {
   ];
 }
 
-List<DateTime> getDataTom(lat, long, ti, mad, method) {
-  final timezone = tz.getLocation(ti);
-  DateTime date =
-      new tz.TZDateTime.from(DateTime.now().add(Duration(days: 1)), timezone);
-
-  Coordinates coordinates =
-      new Coordinates(double.parse(lat), double.parse(long));
-  CalculationParameters params = calcMethods[method];
-  params.madhab = madhab[mad];
-  PrayerTimes prayerTimes = new PrayerTimes(coordinates, date, params);
-
-  DateTime one = tz.TZDateTime.from(prayerTimes.fajr!, timezone);
-  DateTime two = tz.TZDateTime.from(prayerTimes.sunrise!, timezone);
-  DateTime three = tz.TZDateTime.from(prayerTimes.dhuhr!, timezone);
-  DateTime four = tz.TZDateTime.from(prayerTimes.asr!, timezone);
-  DateTime five = tz.TZDateTime.from(prayerTimes.maghrib!, timezone);
-  DateTime six = tz.TZDateTime.from(prayerTimes.isha!, timezone);
-
-  return [
-    one,
-    two,
-    three,
-    four,
-    five,
-    six,
-  ];
+void createNoti(lat, long, ti, mad, method) async {
+  for (int i = 2; i < 8; i++) {
+    var dataOfPrayer = getDataDay(i - 1, lat, long, ti, mad, method);
+    for (int n = 1; n < 6; n++) {
+      if (n == 1) {
+        await NotificationApi.showScheduledNotification(
+          id: (i - 1) * 5 + n,
+          title: "Fajr Time",
+          body: format(dataOfPrayer[0]),
+          scheduledDate: dataOfPrayer[0],
+        );
+      } else if (n == 2) {
+        await NotificationApi.showScheduledNotification(
+          id: (i - 1) * 5 + n,
+          title: "Dhuhr Time",
+          body: format(dataOfPrayer[2]),
+          scheduledDate: dataOfPrayer[2],
+        );
+      } else if (n == 3) {
+        await NotificationApi.showScheduledNotification(
+          id: (i - 1) * 5 + n,
+          title: "Asr Time",
+          body: format(dataOfPrayer[3]),
+          scheduledDate: dataOfPrayer[3],
+        );
+      } else if (n == 4) {
+        await NotificationApi.showScheduledNotification(
+          id: (i - 1) * 5 + n,
+          title: "Maghrib Time",
+          body: format(dataOfPrayer[4]),
+          scheduledDate: dataOfPrayer[4],
+        );
+      } else if (n == 5) {
+        await NotificationApi.showScheduledNotification(
+          id: (i - 1) * 5 + n,
+          title: "Isha Time",
+          body: format(dataOfPrayer[5]),
+          scheduledDate: dataOfPrayer[5],
+        );
+      }
+    }
+  }
 }
 
-List getDataTod(lat, long, ti, mad, method) {
+String getNext(lat, long, ti, mad, method) {
   final timezone = tz.getLocation(ti);
   DateTime date = new tz.TZDateTime.from(DateTime.now(), timezone);
 
@@ -109,23 +127,11 @@ List getDataTod(lat, long, ti, mad, method) {
   CalculationParameters params = calcMethods[method];
   params.madhab = madhab[mad];
   PrayerTimes prayerTimes = new PrayerTimes(coordinates, date, params);
-
-  DateTime one = tz.TZDateTime.from(prayerTimes.fajr!, timezone);
-  DateTime two = tz.TZDateTime.from(prayerTimes.sunrise!, timezone);
-  DateTime three = tz.TZDateTime.from(prayerTimes.dhuhr!, timezone);
-  DateTime four = tz.TZDateTime.from(prayerTimes.asr!, timezone);
-  DateTime five = tz.TZDateTime.from(prayerTimes.maghrib!, timezone);
-  DateTime six = tz.TZDateTime.from(prayerTimes.isha!, timezone);
   String next =
       prayerTimes.nextPrayer(date: DateTime.now().add(Duration(hours: 0)));
-
-  return [one, two, three, four, five, six, next];
+  return next;
 }
 
-const simpleTaskKey = "be.tramckrijte.workmanagerExample.simpleTask";
-const rescheduledTaskKey = "be.tramckrijte.workmanagerExample.rescheduledTask";
-const failedTaskKey = "be.tramckrijte.workmanagerExample.failedTask";
-const simpleDelayedTask = "be.tramckrijte.workmanagerExample.simpleDelayedTask";
 const simplePeriodicTask =
     "be.tramckrijte.workmanagerExample.simplePeriodicTask";
 const simplePeriodic1HourTask =
@@ -134,29 +140,6 @@ const simplePeriodic1HourTask =
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     switch (task) {
-      case simpleTaskKey:
-        print("$simpleTaskKey was executed. inputData = $inputData");
-        final prefs = await SharedPreferences.getInstance();
-        prefs.setBool("test", true);
-        print("Bool from prefs: ${prefs.getBool("test")}");
-        break;
-      case rescheduledTaskKey:
-        final key = inputData!['key']!;
-        final prefs = await SharedPreferences.getInstance();
-        if (prefs.containsKey('unique-$key')) {
-          print('has been running before, task is successful');
-          return true;
-        } else {
-          await prefs.setBool('unique-$key', true);
-          print('reschedule task');
-          return false;
-        }
-      case failedTaskKey:
-        print('failed task');
-        return Future.error('failed');
-      case simpleDelayedTask:
-        print("$simpleDelayedTask was executed");
-        break;
       case simplePeriodicTask:
         tz.initializeTimeZones();
         String ti = await FlutterNativeTimezone.getLocalTimezone();
@@ -165,22 +148,15 @@ void callbackDispatcher() {
         var long = prefs.getStringList("location")![1];
         var mad = prefs.getString("madhab");
         var method = prefs.getString("method");
-        var today = getDataTod(lat, long, ti, mad, method);
-        var tom = getDataTom(lat, long, ti, mad, method);
+        var today = getDataDay(0, lat, long, ti, mad, method);
         DateTime fajr1 = today[0];
         DateTime dhuhr1 = today[2];
         DateTime asr1 = today[3];
         DateTime maghrib1 = today[4];
-        String next = today[6];
         DateTime isha1 = today[5];
-        DateTime fajr2 = tom[0];
-        DateTime dhuhr2 = tom[2];
-        DateTime asr2 = tom[3];
-        DateTime maghrib2 = tom[4];
-        DateTime isha2 = tom[5];
+        String next = getNext(lat, long, ti, mad, method);
         print(next);
         if (1 != 2) {
-
           if (next == "fajr") {
             await NotificationApi.showScheduledNotification(
               id: 1,
@@ -213,47 +189,6 @@ void callbackDispatcher() {
               body: format(isha1),
               scheduledDate: isha1,
             );
-            for (int i = 2; i < 8; i++) {
-              var dataOfPrayer = getDataDay(i - 1, lat, long, ti, mad, method);
-              for (int n = 1; n < 6; n++) {
-                if (n == 1) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Fajr Time",
-                    body: format(dataOfPrayer[0]),
-                    scheduledDate: dataOfPrayer[0],
-                  );
-                } else if (n == 2) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Dhuhr Time",
-                    body: format(dataOfPrayer[2]),
-                    scheduledDate: dataOfPrayer[2],
-                  );
-                } else if (n == 3) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Asr Time",
-                    body: format(dataOfPrayer[3]),
-                    scheduledDate: dataOfPrayer[3],
-                  );
-                } else if (n == 4) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Maghrib Time",
-                    body: format(dataOfPrayer[4]),
-                    scheduledDate: dataOfPrayer[4],
-                  );
-                } else if (n == 5) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Isha Time",
-                    body: format(dataOfPrayer[5]),
-                    scheduledDate: dataOfPrayer[5],
-                  );
-                }
-              }
-            }
           } else if (next == "dhuhr") {
             await NotificationApi.showScheduledNotification(
               id: 2,
@@ -280,47 +215,6 @@ void callbackDispatcher() {
               body: format(isha1),
               scheduledDate: isha1,
             );
-            for (int i = 2; i < 8; i++) {
-              var dataOfPrayer = getDataDay(i - 1, lat, long, ti, mad, method);
-              for (int n = 1; n < 6; n++) {
-                if (n == 1) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Fajr Time",
-                    body: format(dataOfPrayer[0]),
-                    scheduledDate: dataOfPrayer[0],
-                  );
-                } else if (n == 2) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Dhuhr Time",
-                    body: format(dataOfPrayer[2]),
-                    scheduledDate: dataOfPrayer[2],
-                  );
-                } else if (n == 3) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Asr Time",
-                    body: format(dataOfPrayer[3]),
-                    scheduledDate: dataOfPrayer[3],
-                  );
-                } else if (n == 4) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Maghrib Time",
-                    body: format(dataOfPrayer[4]),
-                    scheduledDate: dataOfPrayer[4],
-                  );
-                } else if (n == 5) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Isha Time",
-                    body: format(dataOfPrayer[5]),
-                    scheduledDate: dataOfPrayer[5],
-                  );
-                }
-              }
-            }
           } else if (next == "asr") {
             print("asr runing");
             await NotificationApi.showScheduledNotification(
@@ -343,48 +237,6 @@ void callbackDispatcher() {
               body: format(isha1),
               scheduledDate: isha1,
             );
-
-            for (int i = 2; i < 8; i++) {
-              var dataOfPrayer = getDataDay(i - 1, lat, long, ti, mad, method);
-              for (int n = 1; n < 6; n++) {
-                if (n == 1) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Fajr Time",
-                    body: format(dataOfPrayer[0]),
-                    scheduledDate: dataOfPrayer[0],
-                  );
-                } else if (n == 2) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Dhuhr Time",
-                    body: format(dataOfPrayer[2]),
-                    scheduledDate: dataOfPrayer[2],
-                  );
-                } else if (n == 3) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Asr Time",
-                    body: format(dataOfPrayer[3]),
-                    scheduledDate: dataOfPrayer[3],
-                  );
-                } else if (n == 4) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Maghrib Time",
-                    body: format(dataOfPrayer[4]),
-                    scheduledDate: dataOfPrayer[4],
-                  );
-                } else if (n == 5) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Isha Time",
-                    body: format(dataOfPrayer[5]),
-                    scheduledDate: dataOfPrayer[5],
-                  );
-                }
-              }
-            }
           } else if (next == "maghrib") {
             print("maghrib ran");
             await NotificationApi.showScheduledNotification(
@@ -400,48 +252,6 @@ void callbackDispatcher() {
               body: format(isha1),
               scheduledDate: isha1,
             );
-
-            for (int i = 2; i < 8; i++) {
-              var dataOfPrayer = getDataDay(i - 1, lat, long, ti, mad, method);
-              for (int n = 1; n < 6; n++) {
-                if (n == 1) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Fajr Time",
-                    body: format(dataOfPrayer[0]),
-                    scheduledDate: dataOfPrayer[0],
-                  );
-                } else if (n == 2) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Dhuhr Time",
-                    body: format(dataOfPrayer[2]),
-                    scheduledDate: dataOfPrayer[2],
-                  );
-                } else if (n == 3) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Asr Time",
-                    body: format(dataOfPrayer[3]),
-                    scheduledDate: dataOfPrayer[3],
-                  );
-                } else if (n == 4) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Maghrib Time",
-                    body: format(dataOfPrayer[4]),
-                    scheduledDate: dataOfPrayer[4],
-                  );
-                } else if (n == 5) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Isha Time",
-                    body: format(dataOfPrayer[5]),
-                    scheduledDate: dataOfPrayer[5],
-                  );
-                }
-              }
-            }
           } else if (next == "isha") {
             await NotificationApi.showScheduledNotification(
               id: 5,
@@ -450,98 +260,14 @@ void callbackDispatcher() {
               scheduledDate: isha1,
             );
             prefs.setString("nextNoti", "isha");
-
-            for (int i = 2; i < 8; i++) {
-              var dataOfPrayer = getDataDay(i - 1, lat, long, ti, mad, method);
-              for (int n = 1; n < 6; n++) {
-                if (n == 1) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Fajr Time",
-                    body: format(dataOfPrayer[0]),
-                    scheduledDate: dataOfPrayer[0],
-                  );
-                } else if (n == 2) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Dhuhr Time",
-                    body: format(dataOfPrayer[2]),
-                    scheduledDate: dataOfPrayer[2],
-                  );
-                } else if (n == 3) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Asr Time",
-                    body: format(dataOfPrayer[3]),
-                    scheduledDate: dataOfPrayer[3],
-                  );
-                } else if (n == 4) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Maghrib Time",
-                    body: format(dataOfPrayer[4]),
-                    scheduledDate: dataOfPrayer[4],
-                  );
-                } else if (n == 5) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Isha Time",
-                    body: format(dataOfPrayer[5]),
-                    scheduledDate: dataOfPrayer[5],
-                  );
-                }
-              }
-            }
           } else if (next == "fajrafter") {
-            for (int i = 2; i < 8; i++) {
-              var dataOfPrayer = getDataDay(i - 1, lat, long, ti, mad, method);
-              for (int n = 1; n < 6; n++) {
-                if (n == 1) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Fajr Time",
-                    body: format(dataOfPrayer[0]),
-                    scheduledDate: dataOfPrayer[0],
-                  );
-                } else if (n == 2) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Dhuhr Time",
-                    body: format(dataOfPrayer[2]),
-                    scheduledDate: dataOfPrayer[2],
-                  );
-                } else if (n == 3) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Asr Time",
-                    body: format(dataOfPrayer[3]),
-                    scheduledDate: dataOfPrayer[3],
-                  );
-                } else if (n == 4) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Maghrib Time",
-                    body: format(dataOfPrayer[4]),
-                    scheduledDate: dataOfPrayer[4],
-                  );
-                } else if (n == 5) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Isha Time",
-                    body: format(dataOfPrayer[5]),
-                    scheduledDate: dataOfPrayer[5],
-                  );
-                }
-              }
-            }
+            prefs.setString("nextNoti", "fajrafter");
           }
+          createNoti(lat, long, ti, mad, method);
         }
 
         print("simple task was run");
 
-        break;
-      case simplePeriodic1HourTask:
-        print("$simplePeriodic1HourTask was executed");
         break;
       case Workmanager.iOSBackgroundTask:
         print("The iOS background fetch was triggered");
@@ -587,8 +313,9 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   tz.initializeTimeZones();
   await NotificationApi.init();
-  String ti = await FlutterNativeTimezone.getLocalTimezone();
   ErrorWidget.builder = (FlutterErrorDetails details) => Container();
+  String ti = await FlutterNativeTimezone.getLocalTimezone();
+
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
   final prefs = await SharedPreferences.getInstance();
@@ -606,380 +333,126 @@ Future<void> main() async {
   var mad = prefs.getString("madhab");
   var method = prefs.getString("method");
   if (prefs.containsKey("nextNoti") == false) {
-    var today = getDataTod(lat, long, ti, mad, method);
-    var tom = getDataTom(lat, long, ti, mad, method);
+    var today = getDataDay(0, lat, long, ti, mad, method);
     DateTime fajr1 = today[0];
     DateTime dhuhr1 = today[2];
     DateTime asr1 = today[3];
     DateTime maghrib1 = today[4];
-    String next = today[6];
+    String next = getNext(lat, long, ti, mad, method);
     DateTime isha1 = today[5];
 
-    DateTime fajr2 = tom[0];
-    DateTime dhuhr2 = tom[2];
-    DateTime asr2 = tom[3];
-    DateTime maghrib2 = tom[4];
-    DateTime isha2 = tom[5];
-
     if (next == "fajr") {
-            await NotificationApi.showScheduledNotification(
-              id: 1,
-              title: "Fajr Time",
-              body: format(fajr1),
-              scheduledDate: fajr1,
-            );
-            prefs.setString("nextNoti", "fajr");
-            await NotificationApi.showScheduledNotification(
-              id: 2,
-              title: "Dhuhr Time",
-              body: format(dhuhr1),
-              scheduledDate: dhuhr1,
-            );
-            await NotificationApi.showScheduledNotification(
-              id: 3,
-              title: "Asr Time",
-              body: format(asr1),
-              scheduledDate: asr1,
-            );
-            await NotificationApi.showScheduledNotification(
-              id: 4,
-              title: "Maghrib Time",
-              body: format(maghrib1),
-              scheduledDate: maghrib1,
-            );
-            await NotificationApi.showScheduledNotification(
-              id: 5,
-              title: "Isha Time",
-              body: format(isha1),
-              scheduledDate: isha1,
-            );
-            for (int i = 2; i < 8; i++) {
-              var dataOfPrayer = getDataDay(i - 1, lat, long, ti, mad, method);
-              for (int n = 1; n < 6; n++) {
-                if (n == 1) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Fajr Time",
-                    body: format(dataOfPrayer[0]),
-                    scheduledDate: dataOfPrayer[0],
-                  );
-                } else if (n == 2) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Dhuhr Time",
-                    body: format(dataOfPrayer[2]),
-                    scheduledDate: dataOfPrayer[2],
-                  );
-                } else if (n == 3) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Asr Time",
-                    body: format(dataOfPrayer[3]),
-                    scheduledDate: dataOfPrayer[3],
-                  );
-                } else if (n == 4) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Maghrib Time",
-                    body: format(dataOfPrayer[4]),
-                    scheduledDate: dataOfPrayer[4],
-                  );
-                } else if (n == 5) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Isha Time",
-                    body: format(dataOfPrayer[5]),
-                    scheduledDate: dataOfPrayer[5],
-                  );
-                }
-              }
-            }
-          } else if (next == "dhuhr") {
-            await NotificationApi.showScheduledNotification(
-              id: 2,
-              title: "Dhuhr Time",
-              body: format(dhuhr1),
-              scheduledDate: dhuhr1,
-            );
-            prefs.setString("nextNoti", "dhuhr");
-            await NotificationApi.showScheduledNotification(
-              id: 3,
-              title: "Asr Time",
-              body: format(asr1),
-              scheduledDate: asr1,
-            );
-            await NotificationApi.showScheduledNotification(
-              id: 4,
-              title: "Maghrib Time",
-              body: format(maghrib1),
-              scheduledDate: maghrib1,
-            );
-            await NotificationApi.showScheduledNotification(
-              id: 5,
-              title: "Isha Time",
-              body: format(isha1),
-              scheduledDate: isha1,
-            );
-            for (int i = 2; i < 8; i++) {
-              var dataOfPrayer = getDataDay(i - 1, lat, long, ti, mad, method);
-              for (int n = 1; n < 6; n++) {
-                if (n == 1) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Fajr Time",
-                    body: format(dataOfPrayer[0]),
-                    scheduledDate: dataOfPrayer[0],
-                  );
-                } else if (n == 2) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Dhuhr Time",
-                    body: format(dataOfPrayer[2]),
-                    scheduledDate: dataOfPrayer[2],
-                  );
-                } else if (n == 3) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Asr Time",
-                    body: format(dataOfPrayer[3]),
-                    scheduledDate: dataOfPrayer[3],
-                  );
-                } else if (n == 4) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Maghrib Time",
-                    body: format(dataOfPrayer[4]),
-                    scheduledDate: dataOfPrayer[4],
-                  );
-                } else if (n == 5) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Isha Time",
-                    body: format(dataOfPrayer[5]),
-                    scheduledDate: dataOfPrayer[5],
-                  );
-                }
-              }
-            }
-          } else if (next == "asr") {
-            print("asr runing");
-            await NotificationApi.showScheduledNotification(
-              id: 3,
-              title: "Asr Time",
-              body: format(asr1),
-              scheduledDate: asr1,
-            );
-            print(asr1.toString());
-            prefs.setString("nextNoti", "asr");
-            await NotificationApi.showScheduledNotification(
-              id: 4,
-              title: "Maghrib Time",
-              body: format(maghrib1),
-              scheduledDate: maghrib1,
-            );
-            await NotificationApi.showScheduledNotification(
-              id: 5,
-              title: "Isha Time",
-              body: format(isha1),
-              scheduledDate: isha1,
-            );
-
-            for (int i = 2; i < 8; i++) {
-              var dataOfPrayer = getDataDay(i - 1, lat, long, ti, mad, method);
-              for (int n = 1; n < 6; n++) {
-                if (n == 1) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Fajr Time",
-                    body: format(dataOfPrayer[0]),
-                    scheduledDate: dataOfPrayer[0],
-                  );
-                } else if (n == 2) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Dhuhr Time",
-                    body: format(dataOfPrayer[2]),
-                    scheduledDate: dataOfPrayer[2],
-                  );
-                } else if (n == 3) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Asr Time",
-                    body: format(dataOfPrayer[3]),
-                    scheduledDate: dataOfPrayer[3],
-                  );
-                } else if (n == 4) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Maghrib Time",
-                    body: format(dataOfPrayer[4]),
-                    scheduledDate: dataOfPrayer[4],
-                  );
-                } else if (n == 5) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Isha Time",
-                    body: format(dataOfPrayer[5]),
-                    scheduledDate: dataOfPrayer[5],
-                  );
-                }
-              }
-            }
-          } else if (next == "maghrib") {
-            print("maghrib ran");
-            await NotificationApi.showScheduledNotification(
-                id: 4,
-                title: "Maghrib Time",
-                body: format(maghrib1),
-                scheduledDate: maghrib1,
-                payload: maghrib1.toString());
-            prefs.setString("nextNoti", "maghrib");
-            await NotificationApi.showScheduledNotification(
-              id: 5,
-              title: "Isha Time",
-              body: format(isha1),
-              scheduledDate: isha1,
-            );
-
-            for (int i = 2; i < 8; i++) {
-              var dataOfPrayer = getDataDay(i - 1, lat, long, ti, mad, method);
-              for (int n = 1; n < 6; n++) {
-                if (n == 1) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Fajr Time",
-                    body: format(dataOfPrayer[0]),
-                    scheduledDate: dataOfPrayer[0],
-                  );
-                } else if (n == 2) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Dhuhr Time",
-                    body: format(dataOfPrayer[2]),
-                    scheduledDate: dataOfPrayer[2],
-                  );
-                } else if (n == 3) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Asr Time",
-                    body: format(dataOfPrayer[3]),
-                    scheduledDate: dataOfPrayer[3],
-                  );
-                } else if (n == 4) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Maghrib Time",
-                    body: format(dataOfPrayer[4]),
-                    scheduledDate: dataOfPrayer[4],
-                  );
-                } else if (n == 5) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Isha Time",
-                    body: format(dataOfPrayer[5]),
-                    scheduledDate: dataOfPrayer[5],
-                  );
-                }
-              }
-            }
-          } else if (next == "isha") {
-            await NotificationApi.showScheduledNotification(
-              id: 5,
-              title: "Isha Time",
-              body: format(isha1),
-              scheduledDate: isha1,
-            );
-            prefs.setString("nextNoti", "isha");
-
-            for (int i = 2; i < 8; i++) {
-              var dataOfPrayer = getDataDay(i - 1, lat, long, ti, mad, method);
-              for (int n = 1; n < 6; n++) {
-                if (n == 1) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Fajr Time",
-                    body: format(dataOfPrayer[0]),
-                    scheduledDate: dataOfPrayer[0],
-                  );
-                } else if (n == 2) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Dhuhr Time",
-                    body: format(dataOfPrayer[2]),
-                    scheduledDate: dataOfPrayer[2],
-                  );
-                } else if (n == 3) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Asr Time",
-                    body: format(dataOfPrayer[3]),
-                    scheduledDate: dataOfPrayer[3],
-                  );
-                } else if (n == 4) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Maghrib Time",
-                    body: format(dataOfPrayer[4]),
-                    scheduledDate: dataOfPrayer[4],
-                  );
-                } else if (n == 5) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Isha Time",
-                    body: format(dataOfPrayer[5]),
-                    scheduledDate: dataOfPrayer[5],
-                  );
-                }
-              }
-            }
-          } else if (next == "fajrafter") {
-            for (int i = 2; i < 8; i++) {
-              var dataOfPrayer = getDataDay(i - 1, lat, long, ti, mad, method);
-              for (int n = 1; n < 6; n++) {
-                if (n == 1) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Fajr Time",
-                    body: format(dataOfPrayer[0]),
-                    scheduledDate: dataOfPrayer[0],
-                  );
-                } else if (n == 2) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Dhuhr Time",
-                    body: format(dataOfPrayer[2]),
-                    scheduledDate: dataOfPrayer[2],
-                  );
-                } else if (n == 3) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Asr Time",
-                    body: format(dataOfPrayer[3]),
-                    scheduledDate: dataOfPrayer[3],
-                  );
-                } else if (n == 4) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Maghrib Time",
-                    body: format(dataOfPrayer[4]),
-                    scheduledDate: dataOfPrayer[4],
-                  );
-                } else if (n == 5) {
-                  await NotificationApi.showScheduledNotification(
-                    id: (i - 1) * 5 + n,
-                    title: "Isha Time",
-                    body: format(dataOfPrayer[5]),
-                    scheduledDate: dataOfPrayer[5],
-                  );
-                }
-              }
-            }
-          }
+      await NotificationApi.showScheduledNotification(
+        id: 1,
+        title: "Fajr Time",
+        body: format(fajr1),
+        scheduledDate: fajr1,
+      );
+      prefs.setString("nextNoti", "fajr");
+      await NotificationApi.showScheduledNotification(
+        id: 2,
+        title: "Dhuhr Time",
+        body: format(dhuhr1),
+        scheduledDate: dhuhr1,
+      );
+      await NotificationApi.showScheduledNotification(
+        id: 3,
+        title: "Asr Time",
+        body: format(asr1),
+        scheduledDate: asr1,
+      );
+      await NotificationApi.showScheduledNotification(
+        id: 4,
+        title: "Maghrib Time",
+        body: format(maghrib1),
+        scheduledDate: maghrib1,
+      );
+      await NotificationApi.showScheduledNotification(
+        id: 5,
+        title: "Isha Time",
+        body: format(isha1),
+        scheduledDate: isha1,
+      );
+    } else if (next == "dhuhr") {
+      await NotificationApi.showScheduledNotification(
+        id: 2,
+        title: "Dhuhr Time",
+        body: format(dhuhr1),
+        scheduledDate: dhuhr1,
+      );
+      prefs.setString("nextNoti", "dhuhr");
+      await NotificationApi.showScheduledNotification(
+        id: 3,
+        title: "Asr Time",
+        body: format(asr1),
+        scheduledDate: asr1,
+      );
+      await NotificationApi.showScheduledNotification(
+        id: 4,
+        title: "Maghrib Time",
+        body: format(maghrib1),
+        scheduledDate: maghrib1,
+      );
+      await NotificationApi.showScheduledNotification(
+        id: 5,
+        title: "Isha Time",
+        body: format(isha1),
+        scheduledDate: isha1,
+      );
+    } else if (next == "asr") {
+      print("asr runing");
+      await NotificationApi.showScheduledNotification(
+        id: 3,
+        title: "Asr Time",
+        body: format(asr1),
+        scheduledDate: asr1,
+      );
+      print(asr1.toString());
+      prefs.setString("nextNoti", "asr");
+      await NotificationApi.showScheduledNotification(
+        id: 4,
+        title: "Maghrib Time",
+        body: format(maghrib1),
+        scheduledDate: maghrib1,
+      );
+      await NotificationApi.showScheduledNotification(
+        id: 5,
+        title: "Isha Time",
+        body: format(isha1),
+        scheduledDate: isha1,
+      );
+    } else if (next == "maghrib") {
+      print("maghrib ran");
+      await NotificationApi.showScheduledNotification(
+          id: 4,
+          title: "Maghrib Time",
+          body: format(maghrib1),
+          scheduledDate: maghrib1,
+          payload: maghrib1.toString());
+      prefs.setString("nextNoti", "maghrib");
+      await NotificationApi.showScheduledNotification(
+        id: 5,
+        title: "Isha Time",
+        body: format(isha1),
+        scheduledDate: isha1,
+      );
+    } else if (next == "isha") {
+      await NotificationApi.showScheduledNotification(
+        id: 5,
+        title: "Isha Time",
+        body: format(isha1),
+        scheduledDate: isha1,
+      );
+      prefs.setString("nextNoti", "isha");
+    } else if (next == "fajrafter") {
+      prefs.setString("nextNoti", "fajrafter");
+    }
+    createNoti(lat, long, ti, mad, method);
   }
 
   Workmanager().initialize(
     callbackDispatcher,
-    isInDebugMode: true,
+    isInDebugMode: false,
   );
   Workmanager().registerPeriodicTask(
     "Notfi",
@@ -999,7 +472,7 @@ Future<void> main() async {
   runApp(MyApp());
   var pendingNotificationRequests2 =
       await flutterLocalNotificationsPlugin.pendingNotificationRequests();
-  for (int i = 0; i < 36; i++) {
+  for (int i = 0; i < pendingNotificationRequests2.length; i++) {
     print(pendingNotificationRequests2[i].body.toString() + "dsjhf");
   }
 
@@ -1030,7 +503,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  late String name;
+  String name = "Loading";
   List prayerNames = ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha"];
   List prayerTimes2 = ["00:00", "00:00", "00:00", "00:00", "00:00", "00:00"];
   List<Color> firstGrad = [
@@ -1061,7 +534,7 @@ class _MyHomePageState extends State<MyHomePage> {
     Color.fromARGB(255, 21, 23, 41), //isha
   ];
   int nextPrayer = -1;
-  String nextPrayerTime="00:00";
+  String nextPrayerTime = "00:00";
   late Position position;
   void _determinePosition() async {
     LocationPermission permission;
@@ -1093,13 +566,21 @@ class _MyHomePageState extends State<MyHomePage> {
     var loc = prefs.getStringList("location");
     final timezone = tz.getLocation(ti);
     DateTime date = tz.TZDateTime.from(DateTime.now(), timezone);
-    List<Placemark> placemarks = await placemarkFromCoordinates(
-      double.parse(loc![0]),
-      double.parse(loc![1]),
-    );
-    setState(() {
-      name = placemarks.first.locality.toString();
-    });
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        double.parse(loc![0]),
+        double.parse(loc![1]),
+      );
+      setState(() {
+        name = placemarks.first.locality.toString();
+      });
+    } catch (e) {
+      setState(() {
+        name = "No internet";
+        nextPrayer = 0;
+      });
+    }
+
     Coordinates coordinates =
         Coordinates(double.parse(loc![0]), double.parse(loc![1]));
     var mad = prefs.getString("madhab");
@@ -1166,6 +647,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     // TODO: implement initState
     getPrayerTimes(refresh: false);
+
     super.initState();
   }
 
