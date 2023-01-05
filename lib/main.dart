@@ -74,7 +74,8 @@ List<DateTime> getDataDay(addDay, lat, long, ti, mad, method) {
   ];
 }
 
-void createNoti(lat, long, ti, mad, method) async {
+Future createNoti(lat, long, ti, mad, method) async {
+  print("Creating notifications");
   for (int i = 2; i < 8; i++) {
     var dataOfPrayer = getDataDay(i - 1, lat, long, ti, mad, method);
     for (int n = 1; n < 6; n++) {
@@ -116,6 +117,153 @@ void createNoti(lat, long, ti, mad, method) async {
       }
     }
   }
+  print("Created Notifications");
+}
+
+void createAllNoti() async {
+  tz.initializeTimeZones();
+  String ti = await FlutterNativeTimezone.getLocalTimezone();
+  final prefs = await SharedPreferences.getInstance();
+  var lat = prefs.getStringList("location")![0];
+  var long = prefs.getStringList("location")![1];
+  var mad = prefs.getString("madhab");
+  var method = prefs.getString("method");
+  var today = getDataDay(0, lat, long, ti, mad, method);
+
+  DateTime fajr1 = today[0];
+  DateTime dhuhr1 = today[2];
+  DateTime asr1 = today[3];
+  DateTime maghrib1 = today[4];
+  DateTime isha1 = today[5];
+  var tom = getDataDay(1, lat, long, ti, mad, method);
+  String next = getNext(lat, long, ti, mad, method);
+  int nowEpoch = DateTime.now().millisecondsSinceEpoch;
+  DateTime fajr2 = tom[0];
+  int? epoch = prefs.getInt("nextEpoch");
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+  await flutterLocalNotificationsPlugin.cancelAll();
+
+  if (next == "fajr") {
+    await NotificationApi.showScheduledNotification(
+      id: 1,
+      title: "Fajr Time",
+      body: format(fajr1),
+      scheduledDate: fajr1,
+    );
+    prefs.setString("nextNoti", "fajr");
+    prefs.setInt("nextEpoch", fajr1.millisecondsSinceEpoch);
+    await NotificationApi.showScheduledNotification(
+      id: 2,
+      title: "Dhuhr Time",
+      body: format(dhuhr1),
+      scheduledDate: dhuhr1,
+    );
+    await NotificationApi.showScheduledNotification(
+      id: 3,
+      title: "Asr Time",
+      body: format(asr1),
+      scheduledDate: asr1,
+    );
+    await NotificationApi.showScheduledNotification(
+      id: 4,
+      title: "Maghrib Time",
+      body: format(maghrib1),
+      scheduledDate: maghrib1,
+    );
+    await NotificationApi.showScheduledNotification(
+      id: 5,
+      title: "Isha Time",
+      body: format(isha1),
+      scheduledDate: isha1,
+    );
+  } else if (next == "dhuhr") {
+    await NotificationApi.showScheduledNotification(
+      id: 2,
+      title: "Dhuhr Time",
+      body: format(dhuhr1),
+      scheduledDate: dhuhr1,
+    );
+    prefs.setString("nextNoti", "dhuhr");
+    prefs.setInt("nextEpoch", dhuhr1.millisecondsSinceEpoch);
+
+    await NotificationApi.showScheduledNotification(
+      id: 3,
+      title: "Asr Time",
+      body: format(asr1),
+      scheduledDate: asr1,
+    );
+    await NotificationApi.showScheduledNotification(
+      id: 4,
+      title: "Maghrib Time",
+      body: format(maghrib1),
+      scheduledDate: maghrib1,
+    );
+    await NotificationApi.showScheduledNotification(
+      id: 5,
+      title: "Isha Time",
+      body: format(isha1),
+      scheduledDate: isha1,
+    );
+  } else if (next == "asr") {
+    print("asr runing");
+    await NotificationApi.showScheduledNotification(
+      id: 3,
+      title: "Asr Time",
+      body: format(asr1),
+      scheduledDate: asr1,
+    );
+    print(asr1.millisecondsSinceEpoch.toString() + " This is epoch ");
+
+    prefs.setString("nextNoti", "asr");
+    prefs.setInt("nextEpoch", asr1.millisecondsSinceEpoch);
+    await NotificationApi.showScheduledNotification(
+      id: 4,
+      title: "Maghrib Time",
+      body: format(maghrib1),
+      scheduledDate: maghrib1,
+    );
+    await NotificationApi.showScheduledNotification(
+      id: 5,
+      title: "Isha Time",
+      body: format(isha1),
+      scheduledDate: isha1,
+    );
+  } else if (next == "maghrib") {
+    print("maghrib ran");
+    await NotificationApi.showScheduledNotification(
+        id: 4,
+        title: "Maghrib Time",
+        body: format(maghrib1),
+        scheduledDate: maghrib1,
+        payload: maghrib1.toString());
+    prefs.setString("nextNoti", "maghrib");
+    prefs.setInt("nextEpoch", maghrib1.millisecondsSinceEpoch);
+    await NotificationApi.showScheduledNotification(
+      id: 5,
+      title: "Isha Time",
+      body: format(isha1),
+      scheduledDate: isha1,
+    );
+  } else if (next == "isha") {
+    await NotificationApi.showScheduledNotification(
+      id: 5,
+      title: "Isha Time",
+      body: format(isha1),
+      scheduledDate: isha1,
+    );
+    prefs.setString("nextNoti", "isha");
+    prefs.setInt("nextEpoch", isha1.millisecondsSinceEpoch);
+  } else if (next == "fajrafter") {
+    prefs.setString("nextNoti", "fajrafter");
+    prefs.setInt("nextEpoch", fajr2.millisecondsSinceEpoch);
+  }
+  await createNoti(lat, long, ti, mad, method);
+  var pendingNotificationRequests2 =
+      await flutterLocalNotificationsPlugin.pendingNotificationRequests();
+  for (int i = 0; i < pendingNotificationRequests2.length; i++) {
+    print(pendingNotificationRequests2[i].body.toString() + "dsjhf");
+  }
 }
 
 String getNext(lat, long, ti, mad, method) {
@@ -141,129 +289,11 @@ void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     switch (task) {
       case simplePeriodicTask:
-        tz.initializeTimeZones();
-        String ti = await FlutterNativeTimezone.getLocalTimezone();
         final prefs = await SharedPreferences.getInstance();
-        var lat = prefs.getStringList("location")![0];
-        var long = prefs.getStringList("location")![1];
-        var mad = prefs.getString("madhab");
-        var method = prefs.getString("method");
-        var today = getDataDay(0, lat, long, ti, mad, method);
-        DateTime fajr1 = today[0];
-        DateTime dhuhr1 = today[2];
-        DateTime asr1 = today[3];
-        DateTime maghrib1 = today[4];
-        DateTime isha1 = today[5];
-        String next = getNext(lat, long, ti, mad, method);
-        print(next);
-        if (1 != 2) {
-          if (next == "fajr") {
-            await NotificationApi.showScheduledNotification(
-              id: 1,
-              title: "Fajr Time",
-              body: format(fajr1),
-              scheduledDate: fajr1,
-            );
-            prefs.setString("nextNoti", "fajr");
-            await NotificationApi.showScheduledNotification(
-              id: 2,
-              title: "Dhuhr Time",
-              body: format(dhuhr1),
-              scheduledDate: dhuhr1,
-            );
-            await NotificationApi.showScheduledNotification(
-              id: 3,
-              title: "Asr Time",
-              body: format(asr1),
-              scheduledDate: asr1,
-            );
-            await NotificationApi.showScheduledNotification(
-              id: 4,
-              title: "Maghrib Time",
-              body: format(maghrib1),
-              scheduledDate: maghrib1,
-            );
-            await NotificationApi.showScheduledNotification(
-              id: 5,
-              title: "Isha Time",
-              body: format(isha1),
-              scheduledDate: isha1,
-            );
-          } else if (next == "dhuhr") {
-            await NotificationApi.showScheduledNotification(
-              id: 2,
-              title: "Dhuhr Time",
-              body: format(dhuhr1),
-              scheduledDate: dhuhr1,
-            );
-            prefs.setString("nextNoti", "dhuhr");
-            await NotificationApi.showScheduledNotification(
-              id: 3,
-              title: "Asr Time",
-              body: format(asr1),
-              scheduledDate: asr1,
-            );
-            await NotificationApi.showScheduledNotification(
-              id: 4,
-              title: "Maghrib Time",
-              body: format(maghrib1),
-              scheduledDate: maghrib1,
-            );
-            await NotificationApi.showScheduledNotification(
-              id: 5,
-              title: "Isha Time",
-              body: format(isha1),
-              scheduledDate: isha1,
-            );
-          } else if (next == "asr") {
-            print("asr runing");
-            await NotificationApi.showScheduledNotification(
-              id: 3,
-              title: "Asr Time",
-              body: format(asr1),
-              scheduledDate: asr1,
-            );
-            print(asr1.toString());
-            prefs.setString("nextNoti", "asr");
-            await NotificationApi.showScheduledNotification(
-              id: 4,
-              title: "Maghrib Time",
-              body: format(maghrib1),
-              scheduledDate: maghrib1,
-            );
-            await NotificationApi.showScheduledNotification(
-              id: 5,
-              title: "Isha Time",
-              body: format(isha1),
-              scheduledDate: isha1,
-            );
-          } else if (next == "maghrib") {
-            print("maghrib ran");
-            await NotificationApi.showScheduledNotification(
-                id: 4,
-                title: "Maghrib Time",
-                body: format(maghrib1),
-                scheduledDate: maghrib1,
-                payload: maghrib1.toString());
-            prefs.setString("nextNoti", "maghrib");
-            await NotificationApi.showScheduledNotification(
-              id: 5,
-              title: "Isha Time",
-              body: format(isha1),
-              scheduledDate: isha1,
-            );
-          } else if (next == "isha") {
-            await NotificationApi.showScheduledNotification(
-              id: 5,
-              title: "Isha Time",
-              body: format(isha1),
-              scheduledDate: isha1,
-            );
-            prefs.setString("nextNoti", "isha");
-          } else if (next == "fajrafter") {
-            prefs.setString("nextNoti", "fajrafter");
-          }
-          createNoti(lat, long, ti, mad, method);
+        int nowEpoch = DateTime.now().millisecondsSinceEpoch;
+        int? epoch = prefs.getInt("nextEpoch");
+        if (epoch! < nowEpoch) {
+          createAllNoti();
         }
 
         print("simple task was run");
@@ -328,126 +358,10 @@ Future<void> main() async {
     prefs.setString("method", "Tehran");
     prefs.setString("madhab", "shafi");
   }
-  var lat = prefs.getStringList("location")![0];
-  var long = prefs.getStringList("location")![1];
-  var mad = prefs.getString("madhab");
-  var method = prefs.getString("method");
-  if (prefs.containsKey("nextNoti") == false) {
-    var today = getDataDay(0, lat, long, ti, mad, method);
-    DateTime fajr1 = today[0];
-    DateTime dhuhr1 = today[2];
-    DateTime asr1 = today[3];
-    DateTime maghrib1 = today[4];
-    String next = getNext(lat, long, ti, mad, method);
-    DateTime isha1 = today[5];
-
-    if (next == "fajr") {
-      await NotificationApi.showScheduledNotification(
-        id: 1,
-        title: "Fajr Time",
-        body: format(fajr1),
-        scheduledDate: fajr1,
-      );
-      prefs.setString("nextNoti", "fajr");
-      await NotificationApi.showScheduledNotification(
-        id: 2,
-        title: "Dhuhr Time",
-        body: format(dhuhr1),
-        scheduledDate: dhuhr1,
-      );
-      await NotificationApi.showScheduledNotification(
-        id: 3,
-        title: "Asr Time",
-        body: format(asr1),
-        scheduledDate: asr1,
-      );
-      await NotificationApi.showScheduledNotification(
-        id: 4,
-        title: "Maghrib Time",
-        body: format(maghrib1),
-        scheduledDate: maghrib1,
-      );
-      await NotificationApi.showScheduledNotification(
-        id: 5,
-        title: "Isha Time",
-        body: format(isha1),
-        scheduledDate: isha1,
-      );
-    } else if (next == "dhuhr") {
-      await NotificationApi.showScheduledNotification(
-        id: 2,
-        title: "Dhuhr Time",
-        body: format(dhuhr1),
-        scheduledDate: dhuhr1,
-      );
-      prefs.setString("nextNoti", "dhuhr");
-      await NotificationApi.showScheduledNotification(
-        id: 3,
-        title: "Asr Time",
-        body: format(asr1),
-        scheduledDate: asr1,
-      );
-      await NotificationApi.showScheduledNotification(
-        id: 4,
-        title: "Maghrib Time",
-        body: format(maghrib1),
-        scheduledDate: maghrib1,
-      );
-      await NotificationApi.showScheduledNotification(
-        id: 5,
-        title: "Isha Time",
-        body: format(isha1),
-        scheduledDate: isha1,
-      );
-    } else if (next == "asr") {
-      print("asr runing");
-      await NotificationApi.showScheduledNotification(
-        id: 3,
-        title: "Asr Time",
-        body: format(asr1),
-        scheduledDate: asr1,
-      );
-      print(asr1.toString());
-      prefs.setString("nextNoti", "asr");
-      await NotificationApi.showScheduledNotification(
-        id: 4,
-        title: "Maghrib Time",
-        body: format(maghrib1),
-        scheduledDate: maghrib1,
-      );
-      await NotificationApi.showScheduledNotification(
-        id: 5,
-        title: "Isha Time",
-        body: format(isha1),
-        scheduledDate: isha1,
-      );
-    } else if (next == "maghrib") {
-      print("maghrib ran");
-      await NotificationApi.showScheduledNotification(
-          id: 4,
-          title: "Maghrib Time",
-          body: format(maghrib1),
-          scheduledDate: maghrib1,
-          payload: maghrib1.toString());
-      prefs.setString("nextNoti", "maghrib");
-      await NotificationApi.showScheduledNotification(
-        id: 5,
-        title: "Isha Time",
-        body: format(isha1),
-        scheduledDate: isha1,
-      );
-    } else if (next == "isha") {
-      await NotificationApi.showScheduledNotification(
-        id: 5,
-        title: "Isha Time",
-        body: format(isha1),
-        scheduledDate: isha1,
-      );
-      prefs.setString("nextNoti", "isha");
-    } else if (next == "fajrafter") {
-      prefs.setString("nextNoti", "fajrafter");
-    }
-    createNoti(lat, long, ti, mad, method);
+  int nowEpoch = DateTime.now().millisecondsSinceEpoch;
+  if (prefs.containsKey("nextNoti") == false ||
+      prefs.getInt("nextEpoch")! < nowEpoch) {
+    createAllNoti();
   }
 
   Workmanager().initialize(
@@ -470,11 +384,7 @@ Future<void> main() async {
       [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
 
   runApp(MyApp());
-  var pendingNotificationRequests2 =
-      await flutterLocalNotificationsPlugin.pendingNotificationRequests();
-  for (int i = 0; i < pendingNotificationRequests2.length; i++) {
-    print(pendingNotificationRequests2[i].body.toString() + "dsjhf");
-  }
+  
 
   print(prefs.getString("nextNoti"));
 }
@@ -536,7 +446,7 @@ class _MyHomePageState extends State<MyHomePage> {
   int nextPrayer = -1;
   String nextPrayerTime = "00:00";
   late Position position;
-  void _determinePosition() async {
+  Future _determinePosition() async {
     LocationPermission permission;
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
@@ -556,15 +466,15 @@ class _MyHomePageState extends State<MyHomePage> {
       position;
     });
     final prefs = await SharedPreferences.getInstance();
-    prefs.setStringList("location",
+    await prefs.setStringList("location",
         [position.latitude.toString(), position.longitude.toString()]);
   }
 
   void getPrayerTimes({bool refresh = false}) async {
     String ti = await FlutterNativeTimezone.getLocalTimezone();
     final prefs = await SharedPreferences.getInstance();
-    var loc = prefs.getStringList("location");
-    final timezone = tz.getLocation(ti);
+    var loc = await prefs.getStringList("location");
+    final timezone = await tz.getLocation(ti);
     DateTime date = tz.TZDateTime.from(DateTime.now(), timezone);
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(
@@ -574,6 +484,7 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         name = placemarks.first.locality.toString();
       });
+      print("Changed NAME");
     } catch (e) {
       setState(() {
         name = "No internet";
@@ -772,9 +683,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   Container(
                     child: IconButton(
                       icon: Icon(Icons.refresh_rounded),
-                      onPressed: () {
-                        _determinePosition();
+                      onPressed: () async {
+                        await _determinePosition();
                         getPrayerTimes(refresh: true);
+                        createAllNoti();
                       },
                     ),
                   ),
