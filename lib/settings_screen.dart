@@ -8,9 +8,10 @@ import 'package:prayer/main.dart';
 import 'package:restart_app/restart_app.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sidebarx/sidebarx.dart';
-
+import 'package:app_settings/app_settings.dart';
 import 'compass_screen2.dart';
 import 'dua_text.dart';
+import 'package:info_popup/info_popup.dart';
 
 enum Methods {
   MuslimWorldLeague,
@@ -37,6 +38,16 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  @override
+  void initState() {
+    // TODO: implement initState
+
+    getShared();
+
+    super.initState();
+  }
+
+  var controller123 = SidebarXController(selectedIndex: 2, extended: false);
   late Methods? _met;
   late Madhab2? _mad;
 
@@ -108,17 +119,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  @override
-  void initState() {
-    // TODO: implement initState
-
-    getShared();
-    
-
-    super.initState();
-  }
-
-  var controller123 = SidebarXController(selectedIndex: 2, extended: false);
   final GlobalKey<ScaffoldState> _key = GlobalKey();
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -135,9 +135,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               color: Colors.black,
               onPressed: () {
                 Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => MyHomePage()),
-                  );
+                  context,
+                  MaterialPageRoute(builder: (context) => MyHomePage()),
+                );
               },
             ),
           ),
@@ -151,20 +151,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             Container(
               padding: EdgeInsets.only(left: 8),
-              child: Text(
-                "Prayer Times Settings",
-                style: TextStyle(
-                    color: Colors.teal,
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(
+                    "Calculation Method",
+                    style: TextStyle(
+                        color: Colors.teal,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold),
+                  ),
+                  InfoPopupWidget(
+                contentTitle: 'Please consult your religious authority for the correct calculation method to use.',
+                arrowTheme: InfoPopupArrowTheme(
+                  color: Colors.grey,
+                ),
+                child: Icon(
+                  Icons.info,
+                  color: Colors.grey,
+                ),
+              ),
+                ],
               ),
             ),
             SizedBox(
               height: 10,
             ),
             GestureDetector(
-              onTap: () {
-                showDialog(
+              onTap: () async {
+                await showDialog(
                   context: context,
                   builder: (context) {
                     return StatefulBuilder(
@@ -182,6 +197,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     _met = value;
                                     setMethod("Muslim World League");
                                   });
+
+                                  Navigator.pop(context);
                                 },
                               ),
                               RadioListTile<Methods>(
@@ -217,6 +234,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   setState(() {
                                     _met = value;
                                     setMethod("Kuwait");
+                                    print(_met);
                                   });
 
                                   Navigator.pop(context);
@@ -336,34 +354,68 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     });
                   },
                 );
+                setState(() {
+                  _met = _met;
+                });
               },
               child: Container(
-                height: 90,
-                padding: EdgeInsets.fromLTRB(10, 10, 50, 10),
+                margin: EdgeInsets.only(left: 15, top: 0, right: 15, bottom: 0),
+                padding: EdgeInsets.only(left: 10, right: 10),
+                height: 60,
+                width: double.infinity,
                 decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.grey)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(10),
+                      topRight: Radius.circular(10),
+                      bottomLeft: Radius.circular(10),
+                      bottomRight: Radius.circular(10)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 5,
+                      blurRadius: 7,
+                      offset: Offset(0, 3), // changes position of shadow
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Calculation Method",
-                      style: TextStyle(color: Colors.black, fontSize: 20),
+                      _met == Methods.MuslimWorldLeague
+                          ? "Muslim World League"
+                          : _met == Methods.NorthAmerica
+                              ? "Noth America"
+                              : _met == Methods.UmmAlQura
+                                  ? "Umm Al-Qura"
+                                  : _met.toString().split(".")[1],
+                      style: TextStyle(fontSize: 15),
                     ),
-                    SizedBox(
-                      height: 5,
-                    ),
-                    Text(
-                      "Please consult your religious authority for the correct calculation method to use.",
-                      style: TextStyle(color: Colors.grey, fontSize: 15),
-                    )
+                    Icon(Icons.arrow_drop_down)
                   ],
                 ),
               ),
             ),
+            SizedBox(
+              height: 30,
+            ),
+            Container(
+              padding: EdgeInsets.only(left: 8),
+              child: Text(
+                "Asr Juristic Method",
+                style: TextStyle(
+                    color: Colors.teal,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold),
+              ),
+            ),
+            SizedBox(
+              height: 10,
+            ),
             GestureDetector(
-              onTap: () {
-                showDialog(
+              onTap: () async {
+                await showDialog(
                   context: context,
                   builder: (context) {
                     return StatefulBuilder(
@@ -381,6 +433,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     _mad = value;
                                   });
                                   setMadhab("shafi");
+                                  Navigator.pop(context);
                                 },
                               ),
                               RadioListTile<Madhab2>(
@@ -392,6 +445,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     _mad = value;
                                   });
                                   setMadhab("hanafi");
+                                  Navigator.pop(context);
                                 },
                               ),
                               SizedBox(
@@ -404,27 +458,79 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     });
                   },
                 );
+                setState(() {
+                  _mad = _mad;
+                });
               },
               child: Container(
-                height: 90,
-                padding: EdgeInsets.fromLTRB(10, 10, 50, 10),
+                margin: EdgeInsets.only(left: 15, top: 0, right: 15, bottom: 0),
+                padding: EdgeInsets.only(left: 10, right: 10),
+                height: 60,
+                width: double.infinity,
                 decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.grey)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(10),
+                      topRight: Radius.circular(10),
+                      bottomLeft: Radius.circular(10),
+                      bottomRight: Radius.circular(10)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 5,
+                      blurRadius: 7,
+                      offset: Offset(0, 3), // changes position of shadow
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Juristic Method for Asr",
-                      style: TextStyle(color: Colors.black, fontSize: 20),
+                      _mad == Madhab2.Shafi ? "Standard Asr Method" : "Hanafi",
+                      style: TextStyle(fontSize: 15),
                     ),
-                    SizedBox(
-                      height: 10,
+                    Icon(Icons.arrow_drop_down)
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 50,
+            ),
+            GestureDetector(
+              onTap: () {
+                AppSettings.openNotificationSettings();
+              },
+              child: Container(
+                margin: EdgeInsets.only(left: 15, top: 0, right: 15, bottom: 0),
+                padding: EdgeInsets.only(left: 10, right: 10),
+                height: 60,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(10),
+                      topRight: Radius.circular(10),
+                      bottomLeft: Radius.circular(10),
+                      bottomRight: Radius.circular(10)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 5,
+                      blurRadius: 7,
+                      offset: Offset(0, 3), // changes position of shadow
                     ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
                     Text(
-                      _mad == Madhab2.Shafi ? "Standart Asr Method" : "Hanafi",
-                      style: TextStyle(color: Colors.grey, fontSize: 15),
-                    )
+                      "Notifications",
+                      style: TextStyle(fontSize: 15),
+                    ),
+                    Icon(Icons.arrow_forward_ios,size: 15,)
                   ],
                 ),
               ),
