@@ -43,6 +43,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     // TODO: implement initState
 
     getShared();
+    getf24();
 
     super.initState();
   }
@@ -50,6 +51,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   var controller123 = SidebarXController(selectedIndex: 2, extended: false);
   late Methods? _met;
   late Madhab2? _mad;
+  late bool format24;
+
+  void getf24() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool? f24 = await prefs.getBool("24format");
+    setState(() {
+      format24 = f24!;
+    });
+  }
 
   void setMethod(String method) async {
     final prefs = await SharedPreferences.getInstance();
@@ -162,15 +172,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         fontWeight: FontWeight.bold),
                   ),
                   InfoPopupWidget(
-                contentTitle: 'Please consult your religious authority for the correct calculation method to use.',
-                arrowTheme: InfoPopupArrowTheme(
-                  color: Colors.grey,
-                ),
-                child: Icon(
-                  Icons.info,
-                  color: Colors.grey,
-                ),
-              ),
+                    contentTitle:
+                        'Please consult your religious authority for the correct calculation method to use.',
+                    arrowTheme: InfoPopupArrowTheme(
+                      color: Colors.grey,
+                    ),
+                    child: Icon(
+                      Icons.info,
+                      color: Colors.grey,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -496,7 +507,74 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             SizedBox(
-              height: 50,
+              height: 30,
+            ),
+            Container(
+              padding: EdgeInsets.only(left: 8),
+              child: Text(
+                "Time Format",
+                style: TextStyle(
+                    color: Colors.teal,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold),
+              ),
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            Container(
+              margin: EdgeInsets.only(left: 15, top: 0, right: 15, bottom: 0),
+              padding: EdgeInsets.only(left: 10, right: 10),
+              height: 60,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(10),
+                    topRight: Radius.circular(10),
+                    bottomLeft: Radius.circular(10),
+                    bottomRight: Radius.circular(10)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 5,
+                    blurRadius: 7,
+                    offset: Offset(0, 3), // changes position of shadow
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "24 Hour Format",
+                    style: TextStyle(fontSize: 15),
+                  ),
+                  Switch(
+                      value: format24,
+                      onChanged: (value) async {
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setBool("24format", value);
+                        getf24();
+                      })
+                ],
+              ),
+            ),
+            SizedBox(
+              height: 30,
+            ),
+            Container(
+              padding: EdgeInsets.only(left: 8),
+              child: Text(
+                "Notifications",
+                style: TextStyle(
+                    color: Colors.teal,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold),
+              ),
+            ),
+            SizedBox(
+              height: 10,
             ),
             GestureDetector(
               onTap: () {
@@ -527,10 +605,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Notifications",
+                      "Open settings",
                       style: TextStyle(fontSize: 15),
                     ),
-                    Icon(Icons.arrow_forward_ios,size: 15,)
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      size: 15,
+                    )
                   ],
                 ),
               ),

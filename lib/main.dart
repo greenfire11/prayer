@@ -25,8 +25,12 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'compass_screen2.dart';
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 
-String format(date) {
-  return DateFormat.Hm().format(date);
+String format(date, {format24 = true}) {
+  if (format24 == true) {
+    return DateFormat.Hm().format(date);
+  } else {
+    return DateFormat.jm().format(date);
+  }
 }
 
 final calcMethods = {
@@ -85,6 +89,7 @@ Future createAllNoti() async {
   var mad = prefs.getString("madhab");
   var method = prefs.getString("method");
   var today = getDataDay(0, lat, long, ti, mad, method);
+  bool format24 = prefs.getBool("24format")!;
   DateTime fajr1 = today[0];
   DateTime dhuhr1 = today[2];
   DateTime asr1 = today[3];
@@ -98,58 +103,58 @@ Future createAllNoti() async {
       await NotificationApi.showScheduledNotification(
         id: 1,
         title: "Fajr Time",
-        body: format(fajr1),
+        body: format(fajr1, format24: format24),
         scheduledDate: fajr1,
       );
       prefs.setString("nextNoti", "fajr");
       await NotificationApi.showScheduledNotification(
         id: 2,
         title: "Dhuhr Time",
-        body: format(dhuhr1),
+        body: format(dhuhr1, format24: format24),
         scheduledDate: dhuhr1,
       );
       await NotificationApi.showScheduledNotification(
         id: 3,
         title: "Asr Time",
-        body: format(asr1),
+        body: format(asr1, format24: format24),
         scheduledDate: asr1,
       );
       await NotificationApi.showScheduledNotification(
         id: 4,
         title: "Maghrib Time",
-        body: format(maghrib1),
+        body: format(maghrib1, format24: format24),
         scheduledDate: maghrib1,
       );
       await NotificationApi.showScheduledNotification(
         id: 5,
         title: "Isha Time",
-        body: format(isha1),
+        body: format(isha1, format24: format24),
         scheduledDate: isha1,
       );
     } else if (next == "dhuhr") {
       await NotificationApi.showScheduledNotification(
         id: 2,
         title: "Dhuhr Time",
-        body: format(dhuhr1),
+        body: format(dhuhr1, format24: format24),
         scheduledDate: dhuhr1,
       );
       prefs.setString("nextNoti", "dhuhr");
       await NotificationApi.showScheduledNotification(
         id: 3,
         title: "Asr Time",
-        body: format(asr1),
+        body: format(asr1, format24: format24),
         scheduledDate: asr1,
       );
       await NotificationApi.showScheduledNotification(
         id: 4,
         title: "Maghrib Time",
-        body: format(maghrib1),
+        body: format(maghrib1, format24: format24),
         scheduledDate: maghrib1,
       );
       await NotificationApi.showScheduledNotification(
         id: 5,
         title: "Isha Time",
-        body: format(isha1),
+        body: format(isha1, format24: format24),
         scheduledDate: isha1,
       );
     } else if (next == "asr") {
@@ -157,7 +162,7 @@ Future createAllNoti() async {
       await NotificationApi.showScheduledNotification(
         id: 3,
         title: "Asr Time",
-        body: format(asr1),
+        body: format(asr1, format24: format24),
         scheduledDate: asr1,
       );
       print(asr1.toString());
@@ -165,13 +170,13 @@ Future createAllNoti() async {
       await NotificationApi.showScheduledNotification(
         id: 4,
         title: "Maghrib Time",
-        body: format(maghrib1),
+        body: format(maghrib1, format24: format24),
         scheduledDate: maghrib1,
       );
       await NotificationApi.showScheduledNotification(
         id: 5,
         title: "Isha Time",
-        body: format(isha1),
+        body: format(isha1, format24: format24),
         scheduledDate: isha1,
       );
     } else if (next == "maghrib") {
@@ -179,21 +184,21 @@ Future createAllNoti() async {
       await NotificationApi.showScheduledNotification(
           id: 4,
           title: "Maghrib Time",
-          body: format(maghrib1),
+          body: format(maghrib1, format24: format24),
           scheduledDate: maghrib1,
           payload: maghrib1.toString());
       prefs.setString("nextNoti", "maghrib");
       await NotificationApi.showScheduledNotification(
         id: 5,
         title: "Isha Time",
-        body: format(isha1),
+        body: format(isha1, format24: format24),
         scheduledDate: isha1,
       );
     } else if (next == "isha") {
       await NotificationApi.showScheduledNotification(
         id: 5,
         title: "Isha Time",
-        body: format(isha1),
+        body: format(isha1, format24: format24),
         scheduledDate: isha1,
       );
       prefs.setString("nextNoti", "isha");
@@ -205,6 +210,8 @@ Future createAllNoti() async {
 }
 
 Future createNoti(lat, long, ti, mad, method) async {
+  final prefs = await SharedPreferences.getInstance();
+  bool format24 = prefs.getBool("24format")!;
   for (int i = 2; i < 8; i++) {
     var dataOfPrayer = getDataDay(i - 1, lat, long, ti, mad, method);
     for (int n = 1; n < 6; n++) {
@@ -212,35 +219,35 @@ Future createNoti(lat, long, ti, mad, method) async {
         await NotificationApi.showScheduledNotification(
           id: (i - 1) * 5 + n,
           title: "Fajr Time",
-          body: format(dataOfPrayer[0]),
+          body: format(dataOfPrayer[0], format24: format24),
           scheduledDate: dataOfPrayer[0],
         );
       } else if (n == 2) {
         await NotificationApi.showScheduledNotification(
           id: (i - 1) * 5 + n,
           title: "Dhuhr Time",
-          body: format(dataOfPrayer[2]),
+          body: format(dataOfPrayer[2], format24: format24),
           scheduledDate: dataOfPrayer[2],
         );
       } else if (n == 3) {
         await NotificationApi.showScheduledNotification(
           id: (i - 1) * 5 + n,
           title: "Asr Time",
-          body: format(dataOfPrayer[3]),
+          body: format(dataOfPrayer[3], format24: format24),
           scheduledDate: dataOfPrayer[3],
         );
       } else if (n == 4) {
         await NotificationApi.showScheduledNotification(
           id: (i - 1) * 5 + n,
           title: "Maghrib Time",
-          body: format(dataOfPrayer[4]),
+          body: format(dataOfPrayer[4], format24: format24),
           scheduledDate: dataOfPrayer[4],
         );
       } else if (n == 5) {
         await NotificationApi.showScheduledNotification(
           id: (i - 1) * 5 + n,
           title: "Isha Time",
-          body: format(dataOfPrayer[5]),
+          body: format(dataOfPrayer[5], format24: format24),
           scheduledDate: dataOfPrayer[5],
         );
       }
@@ -288,6 +295,7 @@ void callbackDispatcher() {
         var mad = prefs.getString("madhab");
         var method = prefs.getString("method");
         var today = getDataDay(0, lat, long, ti, mad, method);
+        bool format24 = prefs.getBool("24format")!;
         DateTime fajr1 = today[0];
         DateTime dhuhr1 = today[2];
         DateTime asr1 = today[3];
@@ -301,58 +309,58 @@ void callbackDispatcher() {
             await NotificationApi.showScheduledNotification(
               id: 1,
               title: "Fajr Time",
-              body: format(fajr1),
+              body: format(fajr1, format24: format24),
               scheduledDate: fajr1,
             );
             prefs.setString("nextNoti", "fajr");
             await NotificationApi.showScheduledNotification(
               id: 2,
               title: "Dhuhr Time",
-              body: format(dhuhr1),
+              body: format(dhuhr1, format24: format24),
               scheduledDate: dhuhr1,
             );
             await NotificationApi.showScheduledNotification(
               id: 3,
               title: "Asr Time",
-              body: format(asr1),
+              body: format(asr1, format24: format24),
               scheduledDate: asr1,
             );
             await NotificationApi.showScheduledNotification(
               id: 4,
               title: "Maghrib Time",
-              body: format(maghrib1),
+              body: format(maghrib1, format24: format24),
               scheduledDate: maghrib1,
             );
             await NotificationApi.showScheduledNotification(
               id: 5,
               title: "Isha Time",
-              body: format(isha1),
+              body: format(isha1, format24: format24),
               scheduledDate: isha1,
             );
           } else if (next == "dhuhr") {
             await NotificationApi.showScheduledNotification(
               id: 2,
               title: "Dhuhr Time",
-              body: format(dhuhr1),
+              body: format(dhuhr1, format24: format24),
               scheduledDate: dhuhr1,
             );
             prefs.setString("nextNoti", "dhuhr");
             await NotificationApi.showScheduledNotification(
               id: 3,
               title: "Asr Time",
-              body: format(asr1),
+              body: format(asr1, format24: format24),
               scheduledDate: asr1,
             );
             await NotificationApi.showScheduledNotification(
               id: 4,
               title: "Maghrib Time",
-              body: format(maghrib1),
+              body: format(maghrib1, format24: format24),
               scheduledDate: maghrib1,
             );
             await NotificationApi.showScheduledNotification(
               id: 5,
               title: "Isha Time",
-              body: format(isha1),
+              body: format(isha1, format24: format24),
               scheduledDate: isha1,
             );
           } else if (next == "asr") {
@@ -360,7 +368,7 @@ void callbackDispatcher() {
             await NotificationApi.showScheduledNotification(
               id: 3,
               title: "Asr Time",
-              body: format(asr1),
+              body: format(asr1, format24: format24),
               scheduledDate: asr1,
             );
             print(asr1.toString());
@@ -368,13 +376,13 @@ void callbackDispatcher() {
             await NotificationApi.showScheduledNotification(
               id: 4,
               title: "Maghrib Time",
-              body: format(maghrib1),
+              body: format(maghrib1, format24: format24),
               scheduledDate: maghrib1,
             );
             await NotificationApi.showScheduledNotification(
               id: 5,
               title: "Isha Time",
-              body: format(isha1),
+              body: format(isha1, format24: format24),
               scheduledDate: isha1,
             );
           } else if (next == "maghrib") {
@@ -382,21 +390,21 @@ void callbackDispatcher() {
             await NotificationApi.showScheduledNotification(
                 id: 4,
                 title: "Maghrib Time",
-                body: format(maghrib1),
+                body: format(maghrib1, format24: format24),
                 scheduledDate: maghrib1,
                 payload: maghrib1.toString());
             prefs.setString("nextNoti", "maghrib");
             await NotificationApi.showScheduledNotification(
               id: 5,
               title: "Isha Time",
-              body: format(isha1),
+              body: format(isha1, format24: format24),
               scheduledDate: isha1,
             );
           } else if (next == "isha") {
             await NotificationApi.showScheduledNotification(
               id: 5,
               title: "Isha Time",
-              body: format(isha1),
+              body: format(isha1, format24: format24),
               scheduledDate: isha1,
             );
             prefs.setString("nextNoti", "isha");
@@ -464,6 +472,9 @@ Future<void> main() async {
 
     await Permission.locationWhenInUse.request();
   }
+  if (prefs.containsKey("24format") == false) {
+    prefs.setBool("24format", true);
+  }
   if (prefs.containsKey('method') == false) {
     prefs.setString("method", "Tehran");
     prefs.setString("madhab", "shafi");
@@ -472,6 +483,7 @@ Future<void> main() async {
   var long = prefs.getStringList("location")![1];
   var mad = prefs.getString("madhab");
   var method = prefs.getString("method");
+  bool format24 = prefs.getBool("24format")!;
   if (prefs.containsKey("nextNoti") == false) {
     var today = getDataDay(0, lat, long, ti, mad, method);
     DateTime fajr1 = today[0];
@@ -485,58 +497,58 @@ Future<void> main() async {
       await NotificationApi.showScheduledNotification(
         id: 1,
         title: "Fajr Time",
-        body: format(fajr1),
+        body: format(fajr1, format24: format24),
         scheduledDate: fajr1,
       );
       prefs.setString("nextNoti", "fajr");
       await NotificationApi.showScheduledNotification(
         id: 2,
         title: "Dhuhr Time",
-        body: format(dhuhr1),
+        body: format(dhuhr1, format24: format24),
         scheduledDate: dhuhr1,
       );
       await NotificationApi.showScheduledNotification(
         id: 3,
         title: "Asr Time",
-        body: format(asr1),
+        body: format(asr1, format24: format24),
         scheduledDate: asr1,
       );
       await NotificationApi.showScheduledNotification(
         id: 4,
         title: "Maghrib Time",
-        body: format(maghrib1),
+        body: format(maghrib1, format24: format24),
         scheduledDate: maghrib1,
       );
       await NotificationApi.showScheduledNotification(
         id: 5,
         title: "Isha Time",
-        body: format(isha1),
+        body: format(isha1, format24: format24),
         scheduledDate: isha1,
       );
     } else if (next == "dhuhr") {
       await NotificationApi.showScheduledNotification(
         id: 2,
         title: "Dhuhr Time",
-        body: format(dhuhr1),
+        body: format(dhuhr1, format24: format24),
         scheduledDate: dhuhr1,
       );
       prefs.setString("nextNoti", "dhuhr");
       await NotificationApi.showScheduledNotification(
         id: 3,
         title: "Asr Time",
-        body: format(asr1),
+        body: format(asr1, format24: format24),
         scheduledDate: asr1,
       );
       await NotificationApi.showScheduledNotification(
         id: 4,
         title: "Maghrib Time",
-        body: format(maghrib1),
+        body: format(maghrib1, format24: format24),
         scheduledDate: maghrib1,
       );
       await NotificationApi.showScheduledNotification(
         id: 5,
         title: "Isha Time",
-        body: format(isha1),
+        body: format(isha1, format24: format24),
         scheduledDate: isha1,
       );
     } else if (next == "asr") {
@@ -544,7 +556,7 @@ Future<void> main() async {
       await NotificationApi.showScheduledNotification(
         id: 3,
         title: "Asr Time",
-        body: format(asr1),
+        body: format(asr1, format24: format24),
         scheduledDate: asr1,
       );
       print(asr1.toString());
@@ -552,13 +564,13 @@ Future<void> main() async {
       await NotificationApi.showScheduledNotification(
         id: 4,
         title: "Maghrib Time",
-        body: format(maghrib1),
+        body: format(maghrib1, format24: format24),
         scheduledDate: maghrib1,
       );
       await NotificationApi.showScheduledNotification(
         id: 5,
         title: "Isha Time",
-        body: format(isha1),
+        body: format(isha1, format24: format24),
         scheduledDate: isha1,
       );
     } else if (next == "maghrib") {
@@ -566,21 +578,21 @@ Future<void> main() async {
       await NotificationApi.showScheduledNotification(
           id: 4,
           title: "Maghrib Time",
-          body: format(maghrib1),
+          body: format(maghrib1, format24: format24),
           scheduledDate: maghrib1,
           payload: maghrib1.toString());
       prefs.setString("nextNoti", "maghrib");
       await NotificationApi.showScheduledNotification(
         id: 5,
         title: "Isha Time",
-        body: format(isha1),
+        body: format(isha1, format24: format24),
         scheduledDate: isha1,
       );
     } else if (next == "isha") {
       await NotificationApi.showScheduledNotification(
         id: 5,
         title: "Isha Time",
-        body: format(isha1),
+        body: format(isha1, format24: format24),
         scheduledDate: isha1,
       );
       prefs.setString("nextNoti", "isha");
@@ -637,10 +649,11 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   String name = "Loading";
-  List prayerNames = ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha"];
-  List prayerTimes2 = ["00:00", "00:00", "00:00", "00:00", "00:00", "00:00"];
+  List prayerNames = ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha","Midnight"];
+  List prayerTimes2 = ["00:00", "00:00", "00:00", "00:00", "00:00", "00:00","00:00"];
+  late FixedExtentScrollController scrollController;
   List<Color> firstGrad = [
     Color(0xff100e2a), //fajr
     Color(0xffeb6344),
@@ -648,7 +661,8 @@ class _MyHomePageState extends State<MyHomePage> {
     Color(0xff4ca1dc),
     //asr
     Color(0xff8a327d),
-    Color(0xff6f53a5), //isha
+    Color(0xff6f53a5),
+    Color.fromARGB(255, 24, 0, 71), //isha
   ];
   List secondGrad = [
     Color(0xff2e2855), //fajr
@@ -657,7 +671,8 @@ class _MyHomePageState extends State<MyHomePage> {
     Color.fromARGB(255, 137, 191, 230),
     //asr
     Color(0xffc630a4),
-    Color(0xffaa9cc7), //isha
+    Color(0xffaa9cc7),
+    Color.fromARGB(255, 141, 116, 192), //isha
   ];
 
   List mosqueFront = [
@@ -665,6 +680,7 @@ class _MyHomePageState extends State<MyHomePage> {
     Color.fromARGB(255, 24, 19, 18), //sunrise
     Color.fromARGB(255, 23, 33, 54),
     Color.fromARGB(255, 23, 33, 54), //asr
+    Color.fromARGB(255, 21, 23, 41),
     Color.fromARGB(255, 21, 23, 41),
     Color.fromARGB(255, 21, 23, 41), //isha
   ];
@@ -700,6 +716,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final prefs = await SharedPreferences.getInstance();
     var loc = await prefs.getStringList("location");
     final timezone = await tz.getLocation(ti);
+    bool format24 = prefs.getBool("24format")!;
     DateTime date = tz.TZDateTime.from(DateTime.now(), timezone);
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(
@@ -724,17 +741,29 @@ class _MyHomePageState extends State<MyHomePage> {
     CalculationParameters params = calcMethods[method];
     params.madhab = madhab[mad];
     PrayerTimes prayerTimes = PrayerTimes(coordinates, date, params);
+    SunnahTimes sunnahTimes = SunnahTimes(prayerTimes);
 
-    String fajrTime = format(tz.TZDateTime.from(prayerTimes.fajr!, timezone));
-    String sunriseTime =
-        format(tz.TZDateTime.from(prayerTimes.sunrise!, timezone));
-    String dhuhrTime = format(tz.TZDateTime.from(prayerTimes.dhuhr!, timezone));
-    String asrTime = format(tz.TZDateTime.from(prayerTimes.asr!, timezone));
-    String maghribTime =
-        format(tz.TZDateTime.from(prayerTimes.maghrib!, timezone));
-    String ishaTime = format(tz.TZDateTime.from(prayerTimes.isha!, timezone));
-    String fajrTimeafter =
-        format(tz.TZDateTime.from(prayerTimes.fajrafter!, timezone));
+    String fajrTime = format(tz.TZDateTime.from(prayerTimes.fajr!, timezone),
+        format24: format24);
+    String sunriseTime = format(
+        tz.TZDateTime.from(prayerTimes.sunrise!, timezone),
+        format24: format24);
+    String dhuhrTime = format(tz.TZDateTime.from(prayerTimes.dhuhr!, timezone),
+        format24: format24);
+    String asrTime = format(tz.TZDateTime.from(prayerTimes.asr!, timezone),
+        format24: format24);
+    String maghribTime = format(
+        tz.TZDateTime.from(prayerTimes.maghrib!, timezone),
+        format24: format24);
+    String ishaTime = format(tz.TZDateTime.from(prayerTimes.isha!, timezone),
+        format24: format24);
+    String fajrTimeafter = format(
+        tz.TZDateTime.from(prayerTimes.fajrafter!, timezone),
+        format24: format24);
+    String midnightTime = format(
+        tz.TZDateTime.from(sunnahTimes.middleOfTheNight, timezone),
+        format24: format24);
+    print("midnight is $midnightTime");
 
     setState(() {
       String next = prayerTimes.nextPrayer();
@@ -752,6 +781,26 @@ class _MyHomePageState extends State<MyHomePage> {
                             : next == "isha"
                                 ? 5
                                 : 0;
+        scrollController = FixedExtentScrollController(initialItem: nextPrayer);
+      }
+      if (refresh == true) {
+        print("THIS IS RUNNING");
+        nextPrayer = next == "fajrafter"
+            ? 0
+            : next == "fajr"
+                ? 0
+                : next == "dhuhr"
+                    ? 2
+                    : next == "asr"
+                        ? 3
+                        : next == "maghrib"
+                            ? 4
+                            : next == "isha"
+                                ? 5
+                                : 0;
+        scrollController.animateToItem(nextPrayer,
+            duration: Duration(milliseconds: 10), curve: Curves.easeIn);
+        print(scrollController.selectedItem);
       }
 
       nextPrayerTime = next == "fajrafter"
@@ -773,16 +822,26 @@ class _MyHomePageState extends State<MyHomePage> {
         dhuhrTime,
         asrTime,
         maghribTime,
-        ishaTime
+        ishaTime,
+        midnightTime,
       ];
     });
     print(nextPrayer);
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    print(state.toString() + " This is the state");
+    if (AppLifecycleState.resumed == state) {
+      getPrayerTimes(refresh: true);
+    }
+  }
+
+  @override
   void initState() {
     // TODO: implement initState
     getPrayerTimes(refresh: false);
+    WidgetsBinding.instance.addObserver(this);
 
     super.initState();
   }
@@ -926,7 +985,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               Container(
                   child: (() {
-                if (nextPrayer == 0 || nextPrayer == 4 || nextPrayer == 5) {
+                if (nextPrayer == 0 || nextPrayer == 4 || nextPrayer == 5||nextPrayer==6) {
                   return Stack(
                     children: [
                       Align(
@@ -1004,8 +1063,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     diameterRatio: 3,
                     useMagnifier: true,
                     itemExtent: 50,
-                    scrollController: FixedExtentScrollController(
-                        initialItem: nextPrayer != -1 ? nextPrayer : 0),
+                    scrollController: scrollController,
                     // This is called when selected item is changed.
                     onSelectedItemChanged: (int selectedItem) async {
                       setState(() {
