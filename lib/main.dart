@@ -7,6 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:adhan_dart/adhan_dart.dart';
 import 'package:prayer/compass_screen.dart';
 import 'package:prayer/dua_text.dart';
+import 'package:prayer/missed_screen.dart';
 import 'package:prayer/settings_screen.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
@@ -479,6 +480,13 @@ Future<void> main() async {
     prefs.setString("method", "Tehran");
     prefs.setString("madhab", "shafi");
   }
+  if (prefs.containsKey("fajrMissed") == false) {
+    await prefs.setInt("fajrMissed", 0);
+    await prefs.setInt("dhuhrMissed", 0);
+    await prefs.setInt("asrMissed", 0);
+    await prefs.setInt("maghribMissed", 0);
+    await prefs.setInt("ishaMissed", 0);
+  }
   var lat = prefs.getStringList("location")![0];
   var long = prefs.getStringList("location")![1];
   var mad = prefs.getString("madhab");
@@ -651,8 +659,24 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   String name = "Loading";
-  List prayerNames = ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha","Midnight"];
-  List prayerTimes2 = ["00:00", "00:00", "00:00", "00:00", "00:00", "00:00","00:00"];
+  List prayerNames = [
+    "Fajr",
+    "Sunrise",
+    "Dhuhr",
+    "Asr",
+    "Maghrib",
+    "Isha",
+    "Midnight"
+  ];
+  List prayerTimes2 = [
+    "00:00",
+    "00:00",
+    "00:00",
+    "00:00",
+    "00:00",
+    "00:00",
+    "00:00"
+  ];
   late FixedExtentScrollController scrollController;
   List<Color> firstGrad = [
     Color(0xff100e2a), //fajr
@@ -865,7 +889,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       ),
     ],
   );
-  var controller123 = SidebarXController(selectedIndex: 0, extended: false);
+  var controller123 = SidebarXController(selectedIndex: 0, extended: true);
   final GlobalKey<ScaffoldState> _key = GlobalKey();
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -898,6 +922,21 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => CompassScreen2()),
+                );
+                setState(() {
+                  controller123 =
+                      SidebarXController(selectedIndex: 0, extended: false);
+                });
+              },
+            ),
+            SidebarXItem(
+              icon: FontAwesomeIcons.personPraying,
+              label: 'Missed Prayers',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => MissedPrayerScreen()),
                 );
                 setState(() {
                   controller123 =
@@ -985,7 +1024,10 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
               ),
               Container(
                   child: (() {
-                if (nextPrayer == 0 || nextPrayer == 4 || nextPrayer == 5||nextPrayer==6) {
+                if (nextPrayer == 0 ||
+                    nextPrayer == 4 ||
+                    nextPrayer == 5 ||
+                    nextPrayer == 6) {
                   return Stack(
                     children: [
                       Align(
