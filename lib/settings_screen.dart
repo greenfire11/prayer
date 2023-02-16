@@ -399,7 +399,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           : _met == Methods.NorthAmerica
                               ? "Noth America"
                               : _met == Methods.UmmAlQura
-                                  ? "Umm Al-Qura"
+                                  ? "Umm Al-Qura":_met==Methods.Tehran?
+                                  "Shia - Institute of Geophysics, Tehran"
                                   : _met.toString().split(".")[1],
                       style: TextStyle(fontSize: 15),
                     ),

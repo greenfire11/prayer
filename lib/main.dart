@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:adhan_dart/adhan_dart.dart';
+import 'package:prayer/calendar_screen.dart';
+import 'package:prayer/city_screen.dart';
 import 'package:prayer/compass_screen.dart';
 import 'package:prayer/dua_text.dart';
 import 'package:prayer/missed_screen.dart';
@@ -487,6 +489,9 @@ Future<void> main() async {
     await prefs.setInt("maghribMissed", 0);
     await prefs.setInt("ishaMissed", 0);
   }
+  if (prefs.containsKey("myCities") == false) {
+    prefs.setStringList("myCities", []);
+  }
   var lat = prefs.getStringList("location")![0];
   var long = prefs.getStringList("location")![1];
   var mad = prefs.getString("madhab");
@@ -937,6 +942,36 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => MissedPrayerScreen()),
+                );
+                setState(() {
+                  controller123 =
+                      SidebarXController(selectedIndex: 0, extended: false);
+                });
+              },
+            ),
+            SidebarXItem(
+              icon: FontAwesomeIcons.earthAfrica,
+              label: 'City',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CityScreen()),
+                );
+                setState(() {
+                  controller123 =
+                      SidebarXController(selectedIndex: 0, extended: false);
+                });
+              },
+            ),
+            SidebarXItem(
+              icon: Icons.calendar_month,
+              label: 'Calendar',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CalendarScreen()),
                 );
                 setState(() {
                   controller123 =
