@@ -12,6 +12,7 @@ class MissedContainer extends StatelessWidget {
     this.Color2,
     required this.onClickAction,
     required this.onClickMinus,
+    required this.onClickEdit,
   });
   final prayerName;
   final missedNumber;
@@ -19,67 +20,77 @@ class MissedContainer extends StatelessWidget {
   final Color2;
   Function onClickAction;
   Function onClickMinus;
+  Function onClickEdit;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-      width: double.infinity,
-      height: 120,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.all(Radius.circular(15)),
-        gradient: LinearGradient(
-          colors: [
-            Color1,
-            Color2,
-          ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            "$prayerName",
-            style: TextStyle(
-                color: Colors.white, fontSize: 35, fontWeight: FontWeight.w700),
-          ),
-          Row(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  onClickMinus();
+    return GestureDetector(
+      onTap: () {
+                  onClickEdit();
                 },
-                child: Icon(
-                  Icons.remove_circle,
-                  color: Colors.white,
-                  size: 50,
-                ),
-              ),
-              SizedBox(
-                width: 10,
-              ),
-              Text(
-                "$missedNumber",
-                style: TextStyle(color: Colors.white, fontSize: 25),
-              ),
-              SizedBox(
-                width: 10,
-              ),
-              GestureDetector(
-                onTap: () {
-                  onClickAction();
-                },
-                child: Icon(
-                  Icons.add_circle,
-                  color: Colors.white,
-                  size: 50,
-                ),
-              )
+      child: Container(
+        padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+        width: double.infinity,
+        height: 120,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.all(Radius.circular(15)),
+          gradient: LinearGradient(
+            colors: [
+              Color1,
+              Color2,
             ],
-          )
-        ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "$prayerName",
+              style: TextStyle(
+                  color: Colors.white, fontSize: 33, fontWeight: FontWeight.w700),
+            ),
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    onClickMinus();
+                  },
+                  child: Icon(
+                    Icons.remove_circle,
+                    color: Colors.white,
+                    size: 45,
+                  ),
+                ),
+                SizedBox(
+                  width: 10,
+                ),
+                Text(
+                  "$missedNumber",
+                  style: TextStyle(color: Colors.white, fontSize: 25),
+                ),
+                SizedBox(
+                  width: 10,
+                ),
+                GestureDetector(
+                  onTap: () {
+                    onClickAction();
+                  },
+                  child: Icon(
+                    Icons.add_circle,
+                    color: Colors.white,
+                    size: 45,
+                  ),
+                ),
+                SizedBox(
+                  width: 20,
+                ),
+                
+              ],
+            )
+          ],
+        ),
       ),
     );
   }

@@ -9,9 +9,16 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:intl/intl.dart';
 import 'main.dart';
+import 'package:lat_lng_to_timezone/lat_lng_to_timezone.dart' as tzmap;
 
 class CalendarScreen extends StatefulWidget {
-  const CalendarScreen({super.key});
+  const CalendarScreen({
+    super.key,
+    required this.lat,
+    required this.lng,
+  });
+  final double lat;
+  final double lng;
 
   @override
   State<CalendarScreen> createState() => _CalendarScreenState();
@@ -22,16 +29,32 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   List prayerName = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
   List prayerTime2 = ["00:00", "00:00", "00:00", "00:00", "00:00"];
+  List prayerTimesO = [
+    "00:00",
+    "00:00",
+    "00:00",
+    "00:00",
+    "00:00",
+    "00:00",
+    "00:00"
+  ];
   void getPrayerTimes({bool refresh = false, required DateTime date}) async {
     String ti = await FlutterNativeTimezone.getLocalTimezone();
     final prefs = await SharedPreferences.getInstance();
     var loc = await prefs.getStringList("location");
     final timezone = await tz.getLocation(ti);
-    bool format24 = prefs.getBool("24format")!;
-    
+    String timezone21 = tzmap.latLngToTimezoneString(widget.lat, widget.lng);
+    final timezone2 = await tz.getLocation(timezone21);
 
-    Coordinates coordinates =
-        Coordinates(double.parse(loc![0]), double.parse(loc![1]));
+    bool format24 = prefs.getBool("24format")!;
+    if (format24 == false) {
+      setState(() {
+        TimeSize = 17;
+        print("changed size");
+      });
+    }
+
+    Coordinates coordinates = Coordinates(widget.lat, widget.lng);
     var mad = prefs.getString("madhab");
     var method = prefs.getString("method");
     CalculationParameters params = calcMethods[method];
@@ -60,6 +83,27 @@ class _CalendarScreenState extends State<CalendarScreen> {
         tz.TZDateTime.from(sunnahTimes.middleOfTheNight, timezone),
         format24: format24);
     print("midnight is $midnightTime");
+    String fajrTime2 = format(tz.TZDateTime.from(prayerTimes.fajr!, timezone2),
+        format24: format24);
+    String sunriseTime2 = format(
+        tz.TZDateTime.from(prayerTimes.sunrise!, timezone2),
+        format24: format24);
+    String dhuhrTime2 = format(
+        tz.TZDateTime.from(prayerTimes.dhuhr!, timezone2),
+        format24: format24);
+    String asrTime2 = format(tz.TZDateTime.from(prayerTimes.asr!, timezone2),
+        format24: format24);
+    String maghribTime2 = format(
+        tz.TZDateTime.from(prayerTimes.maghrib!, timezone2),
+        format24: format24);
+    String ishaTime2 = format(tz.TZDateTime.from(prayerTimes.isha!, timezone2),
+        format24: format24);
+    String fajrTimeafter2 = format(
+        tz.TZDateTime.from(prayerTimes.fajrafter!, timezone2),
+        format24: format24);
+    String midnightTime2 = format(
+        tz.TZDateTime.from(sunnahTimes.middleOfTheNight, timezone2),
+        format24: format24);
 
     setState(() {
       prayerTime2 = [
@@ -69,10 +113,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
         maghribTime,
         ishaTime,
       ];
+      prayerTimesO = [
+        fajrTime2,
+        sunriseTime2,
+        dhuhrTime2,
+        asrTime2,
+        maghribTime2,
+        ishaTime2,
+        midnightTime2,
+      ];
     });
     print(date);
   }
 
+  double TimeSize = 21;
   @override
   void initState() {
     getPrayerTimes(date: date1);
@@ -158,6 +212,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
               child: ListView.separated(
+                shrinkWrap: true,
                 itemCount: prayerName.length,
                 separatorBuilder: (BuildContext context, int index) {
                   return SizedBox(
@@ -165,18 +220,47 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 },
                 itemBuilder: (context, index) {
                   final name = prayerName[index];
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        name,
-                        style: TextStyle(color: Colors.black, fontSize: 20),
-                      ),
-                      Text(
-                        prayerTime2[index],
-                        style: TextStyle(color: Colors.black, fontSize: 20),
-                      ),
-                    ],
+                  return Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            name,
+                            textAlign: TextAlign.start,
+                            style: TextStyle(color: Colors.black, fontSize: 20),
+                          ),
+                        ),
+                        
+                         Expanded(
+                           child: Visibility(
+                            visible: prayerTime2[0] == prayerTimesO[0]
+                                    ? false
+                                    : true,
+                                maintainSize: false,
+                             child: Text(
+                                    prayerTimesO[index],
+                                    textAlign: TextAlign.center,
+                                    style:
+                                        TextStyle(color: Colors.black, fontSize: 20),
+                                  ),
+                           ),
+                         ),
+                         
+                            
+                        Expanded(
+                          flex: 1,
+                          child: Container(
+                            color: Colors.transparent,
+                            child: Text(
+                              prayerTime2[index],
+                              textAlign: TextAlign.end,
+                              style: TextStyle(color: Colors.black, fontSize: 20),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   );
                 },
               ),

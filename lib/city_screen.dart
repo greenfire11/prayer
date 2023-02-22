@@ -39,13 +39,15 @@ class _CityScreenState extends State<CityScreen> {
 
   @override
   void initState() {
-    super.initState();
+    getMyCities();
+    
     loadCityData().then((cities) {
       setState(() {
         _cities = cities;
       });
     });
-    getMyCities();
+    
+    super.initState();
   }
 
   @override

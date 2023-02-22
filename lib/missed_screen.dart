@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 
@@ -19,40 +20,99 @@ class _MissedPrayerScreenState extends State<MissedPrayerScreen> {
   late int maghribMissed;
   late int ishaMissed;
   late SharedPreferences prefs;
+  int _value = -1; // initial value for the integer
+
+  Future<void> _showIntegerInputDialog(
+      BuildContext context, String prayername) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(prayername),
+          content: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  autofocus: true,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  decoration: InputDecoration(
+                    hintText: 'Enter the number',
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _value = int.tryParse(value) ?? -1;
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: Text('Done'),
+              onPressed: ()  {
+                if (_value != -1) {
+                   setCustom("${prayername.toLowerCase()}Missed", _value);
+                }
+
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void setCustom(String name, int num) async {
+    await prefs.setInt(name, num);
+    setState(() {
+      name == "fajrMissed"
+          ? fajrMissed = num
+          : name == "dhuhrMissed"
+              ? dhuhrMissed = num
+              : name == "asrMissed"
+                  ? asrMissed = num
+                  : name == "maghribMissed"
+                      ? maghribMissed = num
+                      : ishaMissed = num;
+    });
+  }
 
   void setPlus(String name, int num) async {
-    
-    await prefs.setInt(name, num + 1);
+    if (num<999) {
+      await prefs.setInt(name, num + 1);
     setState(() {
-      
       name == "fajrMissed"
           ? fajrMissed = num + 1
           : name == "dhuhrMissed"
               ? dhuhrMissed = num + 1
               : name == "asrMissed"
-                  ? asrMissed = asrMissed + 1
+                  ? asrMissed = num + 1
                   : name == "maghribMissed"
                       ? maghribMissed = num + 1
                       : ishaMissed = num + 1;
     });
+    }
+    
   }
 
   void setMinus(String name, int num) async {
-    if (num>=1) {
+    if (num >= 1) {
       await prefs.setInt(name, num - 1);
-    setState(() {
-      name == "fajrMissed"
-          ? fajrMissed = num - 1
-          : name == "dhuhrMissed"
-              ? dhuhrMissed = num - 1
-              : name == "asrMissed"
-                  ? asrMissed = asrMissed - 1
-                  : name == "maghribMissed"
-                      ? maghribMissed = num - 1
-                      : ishaMissed = num - 1;
-    });
+      setState(() {
+        name == "fajrMissed"
+            ? fajrMissed = num - 1
+            : name == "dhuhrMissed"
+                ? dhuhrMissed = num - 1
+                : name == "asrMissed"
+                    ? asrMissed = num - 1
+                    : name == "maghribMissed"
+                        ? maghribMissed = num - 1
+                        : ishaMissed = num - 1;
+      });
     }
-    
   }
 
   Future getPrefs() async {
@@ -103,6 +163,9 @@ class _MissedPrayerScreenState extends State<MissedPrayerScreen> {
                 onClickMinus: () {
                   setMinus("fajrMissed", fajrMissed);
                 },
+                onClickEdit: () {
+                  _showIntegerInputDialog(context, "Fajr");
+                },
               ),
               SizedBox(
                 height: spaceHeight,
@@ -117,6 +180,9 @@ class _MissedPrayerScreenState extends State<MissedPrayerScreen> {
                 },
                 onClickMinus: () {
                   setMinus("dhuhrMissed", dhuhrMissed);
+                },
+                onClickEdit: () {
+                  _showIntegerInputDialog(context, "Dhuhr");
                 },
               ),
               SizedBox(
@@ -133,6 +199,9 @@ class _MissedPrayerScreenState extends State<MissedPrayerScreen> {
                 onClickMinus: () {
                   setMinus("asrMissed", asrMissed);
                 },
+                onClickEdit: () {
+                  _showIntegerInputDialog(context, "Asr");
+                },
               ),
               SizedBox(
                 height: spaceHeight,
@@ -148,6 +217,9 @@ class _MissedPrayerScreenState extends State<MissedPrayerScreen> {
                 onClickMinus: () {
                   setMinus("maghribMissed", maghribMissed);
                 },
+                onClickEdit: () {
+                  _showIntegerInputDialog(context, "Maghrib");
+                },
               ),
               SizedBox(
                 height: spaceHeight,
@@ -162,6 +234,9 @@ class _MissedPrayerScreenState extends State<MissedPrayerScreen> {
                 },
                 onClickMinus: () {
                   setMinus("ishaMissed", ishaMissed);
+                },
+                onClickEdit: () {
+                  _showIntegerInputDialog(context, "Isha");
                 },
               ),
             ],

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:prayer/calendar_screen.dart';
 import 'package:prayer/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sidebarx/sidebarx.dart';
@@ -292,9 +293,21 @@ class _CityTimeScreenState extends State<CityTimeScreen> {
                   },
                 ),
               ),
+              actions: [
+                Container(
+                  child: IconButton(
+                    icon: Icon(Icons.calendar_month),
+                    onPressed: () {
+                      Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CalendarScreen(lat: double.parse(widget.lat), lng: double.parse(widget.lng),),),
+                );
+                    },
+                  ),
+                ),
+              ],
               backgroundColor: Colors.transparent,
               title: Text("${widget.city}"),
-              
             ),
             SvgPicture.asset(
               'assets/images/mosques_background.svg',
@@ -427,7 +440,8 @@ class _CityTimeScreenState extends State<CityTimeScreen> {
                             maintainSize: false,
                             child: Text(
                               prayerTimesO[index],
-                              style: TextStyle(color: Colors.white,fontSize: TimeSize),
+                              style: TextStyle(
+                                  color: Colors.white, fontSize: TimeSize),
                             ),
                           ),
                           Text(

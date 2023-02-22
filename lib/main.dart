@@ -716,6 +716,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   int nextPrayer = -1;
   String nextPrayerTime = "00:00";
   late Position position;
+  late double lng;
+  late double lat;
   Future _determinePosition() async {
     LocationPermission permission;
     permission = await Geolocator.checkPermission();
@@ -762,6 +764,10 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         nextPrayer = 0;
       });
     }
+    setState(() {
+      lat = double.parse(loc![0]);
+      lng = double.parse(loc![1]);
+    });
 
     Coordinates coordinates =
         Coordinates(double.parse(loc![0]), double.parse(loc![1]));
@@ -967,12 +973,17 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
             SidebarXItem(
               icon: Icons.calendar_month,
               label: 'Calendar',
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(context);
-                Navigator.push(
+                await Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => CalendarScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => CalendarScreen(
+                            lat: lat,
+                            lng: lng,
+                          )),
                 );
+                print("$lat $lng");
                 setState(() {
                   controller123 =
                       SidebarXController(selectedIndex: 0, extended: false);
